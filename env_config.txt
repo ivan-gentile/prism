@@ -1,0 +1,12 @@
+# OpenAI API Configuration
+# Copy this content to a .env file in the project root
+
+OPENAI_API_KEY=your-openai-api-key-here
+MODEL_NAME=gpt-4o-mini
+TEMPERATURE=0.2
+
+# Instructions:
+# 1. Create a file named .env in the project root
+# 2. Copy the content above to the .env file
+# 3. Replace 'your-openai-api-key-here' with your actual API key
+# 4. Run: python test_clinician_simple_env.py

@@ -42,7 +42,7 @@ class PRISMAgentSystem:
         
     async def initialize_agents(self):
         """Create and initialize all five specialized agents"""
-        print("🔧 Initializing PRISM-AD Agent System...")
+        print("Initializing PRISM-AD Agent System...")
         
         # Create model client
         self.model_client = OpenAIChatCompletionClient(
@@ -87,7 +87,7 @@ class PRISMAgentSystem:
             max_tool_iterations=1
         )
         
-        print("✅ All agents initialized successfully")
+        print("All agents initialized successfully")
         
     async def process_patient(self, patient_data: Dict[str, Any]) -> str:
         """Process patient data through the complete agent pipeline"""
@@ -99,7 +99,7 @@ class PRISMAgentSystem:
         try:
             patient = PatientData(**patient_data)
         except Exception as e:
-            print(f"❌ Error parsing patient data: {e}")
+            print(f"Error parsing patient data: {e}")
             raise
             
         # Step 1: RAG Agent Analysis
@@ -108,7 +108,7 @@ class PRISMAgentSystem:
         rag_result = await self._run_rag_agent(patient)
         
         # Step 2: Clinician Agent Analysis
-        print("\n👨‍⚕️ Step 2: CLINICIAN AGENT ANALYSIS")
+        print("\nStep 2: CLINICIAN AGENT ANALYSIS")
         print("-"*40)
         clinician_result = await self._run_clinician_agent(patient)
         
@@ -128,7 +128,7 @@ class PRISMAgentSystem:
         final_report = await self._run_final_response_agent(consensus_result)
         
         print("\n" + "="*60)
-        print("✅ ASSESSMENT COMPLETE")
+        print("ASSESSMENT COMPLETE")
         print("="*60)
         
         return final_report
@@ -300,7 +300,7 @@ Please provide your final report in Italian following the structure specified in
         """Clean up resources"""
         if self.model_client:
             await self.model_client.close()
-            print("🔒 Model client closed")
+            print("Model client closed")
             
     async def get_agent_conversation(self, agent_name: str) -> List[str]:
         """Get conversation history for a specific agent"""
