@@ -74,6 +74,68 @@ class PRISMAlzheimerModel:
                 "fallback_response": "Unable to complete full assessment. Please ensure the input contains relevant clinical information such as age, cognitive scores, biomarker data, or clinical observations."
             }
     
+    async def process_stream(self, text: str, callback) -> Dict[str, Any]:
+        """
+        Process clinical text through the full PRISM-AD pipeline with streaming updates
+        
+        Args:
+            text: Clinical description or patient data
+            callback: Async callback function for progress updates
+            
+        Yields:
+            Progress updates and final results
+        """
+        try:
+            # Ensure system is initialized
+            if not self.is_initialized:
+                yield "🔧 Initializing PRISM-AD Multi-Agent System..."
+                yield "🔧 Initializing PRISM-AD Agent System (New Architecture)..."
+                await self.initialize()
+                yield "✅ All agents initialized successfully"
+                yield "✅ PRISM-AD System initialized successfully"
+                yield ""
+
+            yield "============================================================"
+            yield "🏥 PRISM-AD ASSESSMENT PIPELINE STARTED (NEW ARCHITECTURE)"
+            yield "============================================================"
+            yield ""
+
+            # Process through the full PRISM-AD pipeline with progress updates
+            clinical_report = None
+            async for item in self.prism_system.process_patient(text):
+                if isinstance(item, str):
+                    # It's a progress message
+                    yield item
+                else:
+                    # It's the final report
+                    clinical_report = item
+
+            # Convert to dictionary for API response
+            result = {
+                "status": "success",
+                "assessment_type": "PRISM-AD Alzheimer's Risk Assessment",
+                "patient_id": clinical_report.patient_id,
+                "fda_stage": clinical_report.fda_stage,
+                "risk_level": clinical_report.risk_level,
+                "executive_summary": clinical_report.executive_summary,
+                "key_findings": clinical_report.key_findings,
+                "clinical_recommendations": clinical_report.clinical_recommendations,
+                "follow_up_timeline": clinical_report.follow_up_timeline,
+                "confidence_score": clinical_report.confidence_score,
+                "processing_timestamp": clinical_report.timestamp.isoformat() if clinical_report.timestamp else None
+            }
+            
+            yield result
+            
+        except Exception as e:
+            print(f"❌ Error processing clinical text: {e}")
+            yield {
+                "status": "error",
+                "error_message": str(e),
+                "assessment_type": "PRISM-AD Alzheimer's Risk Assessment",
+                "fallback_response": "Unable to complete full assessment. Please ensure the input contains relevant clinical information such as age, cognitive scores, biomarker data, or clinical observations."
+            }
+    
     def process(self, text: str) -> str:
         """
         Synchronous wrapper for the async processing method

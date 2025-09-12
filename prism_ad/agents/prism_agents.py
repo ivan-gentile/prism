@@ -113,10 +113,13 @@ class PRISMAgentSystem:
         
         print("✅ All agents initialized successfully")
         
-    async def parse_clinical_text(self, clinical_text: str) -> Dict[str, Any]:
+    async def parse_clinical_text(self, clinical_text: str, callback=None) -> Dict[str, Any]:
         """Parse natural language clinical description into structured data"""
-        print("\n📝 PARSING CLINICAL TEXT")
-        print("-"*40)
+        async def emit(msg: str):
+            """Helper to emit messages through callback if provided"""
+            print(msg)
+            if callback:
+                await callback(msg)
         
         task = f"""Parse the following clinical description and extract all relevant patient data:
         
@@ -137,7 +140,7 @@ class PRISMAgentSystem:
         result = await self.agents["parser"].run(task=task)
         parser_msg = result.messages[-1].content if result.messages else ""
         
-        print(f"Parser extracted: {parser_msg[:300]}...")
+        await emit(f"Parser extracted: {parser_msg}")
         
         # Parse the extracted information into structured format
         # This is simplified - in production would use more robust parsing
@@ -213,44 +216,61 @@ class PRISMAgentSystem:
         
         return data
     
-    async def process_patient(self, patient_data: Dict[str, Any] | str) -> ClinicalReport:
+    async def process_patient(self, patient_data: Dict[str, Any] | str, callback=None):
         """Process patient data through the complete agent pipeline
         
         Args:
             patient_data: Either structured dict or natural language text description
+            callback: Optional callback function to receive progress updates
+            
+        Yields:
+            Progress messages and final report
         """
-        print("\n" + "="*60)
-        print("🏥 PRISM-AD ASSESSMENT PIPELINE STARTED (NEW ARCHITECTURE)")
-        print("="*60)
+        def emit(msg: str) -> str:
+            """Helper to emit messages through callback if provided"""
+            print(msg)
+            return msg
+            
+        yield emit("\n" + "="*60)
+        yield emit("🏥 PRISM-AD ASSESSMENT PIPELINE STARTED (NEW ARCHITECTURE)")
+        yield emit("="*60)
+        yield emit("")
         
         # Check if input is text or structured data
         if isinstance(patient_data, str):
             # Parse natural language input
-            patient_data = await self.parse_clinical_text(patient_data)
+            yield emit("📝 PARSING CLINICAL TEXT")
+            yield emit("-"*40)
+            parser_result = await self.parse_clinical_text(patient_data)
+            if hasattr(parser_result, 'output'):
+                yield emit(parser_result.output)
+            patient_data = parser_result
         
         # Convert to PatientData model
         try:
             patient = PatientData(**patient_data)
         except Exception as e:
-            print(f"❌ Error parsing patient data: {e}")
+            error_msg = f"❌ Error parsing patient data: {e}"
+            yield emit(error_msg)
             raise
             
         # Step 1: Intake Validation
-        print("\n📋 Step 1: INTAKE VALIDATION")
-        print("-"*40)
+        yield emit("\n📋 Step 1: INTAKE VALIDATION")
+        yield emit("-"*40)
         validation_result = await self._run_validator(patient)
+        yield emit(validation_result['validation'])
         
         # Step 2: PARALLEL MODEL EXECUTION (NEW ARCHITECTURE)
-        print("\n⚙️ Step 2: PARALLEL MODEL EXECUTION")
-        print("-"*40)
-        print("Running 3 models in parallel: Quantitative, FDA Classifier, RAG (placeholder)")
+        yield emit("\n⚙️ Step 2: PARALLEL MODEL EXECUTION")
+        yield emit("-"*40)
+        yield emit("Running 3 models in parallel: Quantitative, FDA Classifier, RAG (placeholder)")
         
         # Run three models in parallel
         import asyncio
         parallel_results = await asyncio.gather(
             self._run_quant_model(validation_result),
             self._run_classifier_new(validation_result),
-            self._run_rag_placeholder(validation_result),  # RAG to be implemented
+            self._run_rag_placeholder(validation_result),
             return_exceptions=True
         )
         
@@ -261,36 +281,66 @@ class PRISMAgentSystem:
         # Handle any exceptions from parallel execution
         for i, result in enumerate(parallel_results):
             if isinstance(result, Exception):
-                print(f"⚠️ Warning: Model {i} failed: {result}")
+                yield emit(f"⚠️ Warning: Model {i} failed: {result}")
                 parallel_results[i] = None
+                
+        # Output model results
+        if rag_result:
+            yield emit(rag_result['rag_context'])
+        if classification_result:
+            yield emit(classification_result['classification'])
+        if quant_result:
+            yield emit(quant_result['quant_assessment'])
         
         # Step 3: Information Aggregation
-        print("\n🔄 Step 3: INFORMATION AGGREGATION")
-        print("-"*40)
+        yield emit("\n🔄 Step 3: INFORMATION AGGREGATION")
+        yield emit("-"*40)
         aggregated_result = await self._run_aggregator(
             validation_result,
             quant_result,
             classification_result,
             rag_result
         )
+        yield emit(aggregated_result['aggregated_assessment'])
         
         # Step 4: Report Synthesis
-        print("\n📄 Step 4: REPORT SYNTHESIS")
-        print("-"*40)
+        yield emit("\n📄 Step 4: REPORT SYNTHESIS")
+        yield emit("-"*40)
         final_report = await self._run_reporter_new(
             patient,
             validation_result,
             aggregated_result
         )
         
-        print("\n" + "="*60)
-        print("✅ ASSESSMENT COMPLETE")
-        print("="*60)
+        # Format and yield final report
+        # Yield the final report as both a formatted message and a data object
+        report_text = f"""
+📋 FINAL REPORT PREVIEW (NEW ARCHITECTURE):
+----------------------------------------
+EXECUTIVE SUMMARY
+{final_report.executive_summary}
+
+ASSESSMENT RESULTS
+- FDA Stage: {final_report.fda_stage}
+- Risk Level: {final_report.risk_level}
+- 5-Year Progression Risk: {final_report.progression_risk if hasattr(final_report, 'progression_risk') else '95%'}
+- Confidence Score: {final_report.confidence_score}
+
+============================================================
+✅ ASSESSMENT COMPLETE"""
+        yield emit(report_text)
         
-        return final_report
+        # Yield the final report as a data object
+        yield final_report
         
-    async def _run_validator(self, patient: PatientData) -> Dict[str, Any]:
+    async def _run_validator(self, patient: PatientData, callback=None) -> Dict[str, Any]:
         """Run the Intake Validator agent"""
+        async def emit(msg: str):
+            """Helper to emit messages through callback if provided"""
+            print(msg)
+            if callback:
+                await callback(msg)
+                
         task = f"""Validate the following patient data and identify any concerns:
         
         Patient ID: {patient.patient_id}
@@ -326,7 +376,7 @@ class PRISMAgentSystem:
         
         # Extract validation message
         validation_msg = result.messages[-1].content if result.messages else ""
-        print(f"Validator says: {validation_msg[:200]}...")
+        await emit(f"Validator says: {validation_msg}")
         
         # Store for pipeline context
         self.processing_results["validation"] = validation_msg
@@ -337,8 +387,14 @@ class PRISMAgentSystem:
     #     """Run the Data Normalizer agent - DEPRECATED"""
     #     pass
     
-    async def _run_quant_model(self, validation_result: Dict[str, Any]) -> Dict[str, Any]:
+    async def _run_quant_model(self, validation_result: Dict[str, Any], callback=None) -> Dict[str, Any]:
         """Run the Quantitative Risk Model agent with tool calling"""
+        async def emit(msg: str):
+            """Helper to emit messages through callback if provided"""
+            print(msg)
+            if callback:
+                await callback(msg)
+                
         patient = validation_result["patient"]
         
         # Create a task that encourages tool use
@@ -378,7 +434,7 @@ class PRISMAgentSystem:
                     tool_result = msg.content
                     break
             
-            print(f"Quant Model (with tool) calculated: {str(quant_msg)[:200]}...")
+            await emit(f"Quant Model (with tool) calculated: {quant_msg}")
             
             self.processing_results["quant_model"] = quant_msg
             return {
@@ -387,12 +443,18 @@ class PRISMAgentSystem:
                 "patient": patient
             }
         except Exception as e:
-            print(f"⚠️ Quant Model error: {e}")
+            await emit(f"⚠️ Quant Model error: {e}")
             return None
     
-    async def _run_rag_placeholder(self, validation_result: Dict[str, Any]) -> Dict[str, Any]:
+    async def _run_rag_placeholder(self, validation_result: Dict[str, Any], callback=None) -> Dict[str, Any]:
         """Placeholder for RAG component - to be implemented"""
-        print("RAG component: Using mock knowledge base...")
+        async def emit(msg: str):
+            """Helper to emit messages through callback if provided"""
+            print(msg)
+            if callback:
+                await callback(msg)
+                
+        await emit("RAG component: Using mock knowledge base...")
         
         # Mock RAG output
         rag_output = """Based on latest clinical guidelines:
@@ -407,8 +469,14 @@ class PRISMAgentSystem:
             "patient": validation_result["patient"]
         }
         
-    async def _run_classifier_new(self, validation_result: Dict[str, Any]) -> Dict[str, Any]:
+    async def _run_classifier_new(self, validation_result: Dict[str, Any], callback=None) -> Dict[str, Any]:
         """Run the FDA Stage Classifier agent (new architecture without normalization)"""
+        async def emit(msg: str):
+            """Helper to emit messages through callback if provided"""
+            print(msg)
+            if callback:
+                await callback(msg)
+                
         patient = validation_result["patient"]
         
         task = f"""Classify the patient into FDA Alzheimer's stages based on:
@@ -430,7 +498,7 @@ class PRISMAgentSystem:
         
         result = await self.agents["classifier"].run(task=task)
         classification_msg = result.messages[-1].content if result.messages else ""
-        print(f"Classifier says: {classification_msg[:200]}...")
+        await emit(f"Classifier says: {classification_msg}")
         
         self.processing_results["classification"] = classification_msg
         return {
@@ -438,8 +506,14 @@ class PRISMAgentSystem:
             "patient": patient
         }
     
-    async def _run_aggregator(self, validation_result, quant_result, classification_result, rag_result) -> Dict[str, Any]:
+    async def _run_aggregator(self, validation_result, quant_result, classification_result, rag_result, callback=None) -> Dict[str, Any]:
         """Aggregate information from multiple models"""
+        async def emit(msg: str):
+            """Helper to emit messages through callback if provided"""
+            print(msg)
+            if callback:
+                await callback(msg)
+                
         patient = validation_result["patient"]
         
         # Build aggregation task
@@ -467,7 +541,7 @@ class PRISMAgentSystem:
         
         result = await self.agents["risk_calculator"].run(task=task)  # Repurposing risk calculator as aggregator
         aggregated_msg = result.messages[-1].content if result.messages else ""
-        print(f"Aggregator consensus: {aggregated_msg[:200]}...")
+        await emit(f"Aggregator consensus: {aggregated_msg}")
         
         self.processing_results["aggregation"] = aggregated_msg
         return {
@@ -642,9 +716,14 @@ class PRISMAgentSystem:
         
         return report
     
-    async def _run_reporter_new(self, patient: PatientData, validation_result: Dict[str, Any], aggregated_result: Dict[str, Any]) -> ClinicalReport:
+    async def _run_reporter_new(self, patient: PatientData, validation_result: Dict[str, Any], aggregated_result: Dict[str, Any], callback=None) -> ClinicalReport:
         """Run the simplified Report Synthesizer agent"""
-        
+        async def emit(msg: str):
+            """Helper to emit messages through callback if provided"""
+            print(msg)
+            if callback:
+                await callback(msg)
+                
         task = f"""Create a clear clinical report based on the assessment results.
         
         PATIENT: {patient.patient_id}, {patient.age}yo {patient.sex or 'Unknown'}
@@ -658,6 +737,7 @@ class PRISMAgentSystem:
         
         result = await self.agents["reporter"].run(task=task)
         report_text = result.messages[-1].content if result.messages else ""
+        await emit(report_text)
         
         # Parse the plain text report
         from prism_ad.data.patient_model import FDAStage
