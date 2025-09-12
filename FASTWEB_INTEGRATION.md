@@ -58,24 +58,48 @@ Edit `.env` and add your credentials:
 # Enable FastWeb integration
 FASTWEB_ENABLED=true
 
-# FastWeb API credentials
-FASTWEB_API_KEY=your_fastweb_api_key_here
+# FastWeb API endpoint
 FASTWEB_BASE_URL=https://api.ai-fastweb.it/v1
-FASTWEB_MODEL=Llama-3.3-70B-Instruct
+
+# Default FastWeb model to use
+FASTWEB_MODEL=meta/llama-3-3-70b-instruct
+
+# FastWeb JWT Tokens (each model requires its own JWT token)
+# Token for meta/llama-3-3-70b-instruct (default)
+FASTWEB_TOKEN_LLAMA=eyJhbGciOiJIUzI1NiI...
+
+# Token for Fastweb/FastwebMIIA-7B
+FASTWEB_TOKEN_MIIA=eyJhbGciOiJIUzI1NiI...
+
+# Token for google/gemma-3-27b-it
+FASTWEB_TOKEN_GEMMA=eyJhbGciOiJIUzI1NiI...
 
 # OpenAI credentials (still required for some agents)
 OPENAI_API_KEY=your_openai_api_key_here
 ```
 
+**Important**: FastWeb uses JWT tokens for authentication. Each model requires its own specific JWT token. The tokens are provided for the hackathon environment (basepod1, application ID: hackathon).
+
 ### 2. Available FastWeb Models
 
-Based on the FastWeb API documentation, the following models are available:
-- `Llama-3.3-70B-Instruct` (default)
-- Other models as specified in the FastWeb documentation
+The following FastWeb models are available for the hackathon:
+
+| Model | Use Case | JWT Token Required |
+|-------|----------|-------------------|
+| `meta/llama-3-3-70b-instruct` | General purpose, high performance (default) | Yes |
+| `Fastweb/FastwebMIIA-7B` | Lightweight, faster inference | Yes |
+| `google/gemma-3-27b-it` | Balanced performance | Yes |
+| `jinaai/jina-embeddings-v3` | Text embeddings for RAG | Yes |
+| `openai/whisper-large-v3-turbo` | Speech-to-text (not used in pipeline) | Yes |
+
+Each model requires its own JWT token for authentication.
 
 ### 3. Custom Agent Mapping
 
-You can override which provider each agent uses by modifying `prism_ad/config.py`:
+You can override which provider and model each agent uses:
+
+#### Provider Selection
+Modify `AGENT_MODEL_MAP` in `prism_ad/config.py`:
 
 ```python
 AGENT_MODEL_MAP = {
@@ -83,6 +107,16 @@ AGENT_MODEL_MAP = {
     "validator": "primary",  # Keep using OpenAI
     "classifier": "fastweb",
     # ... etc
+}
+```
+
+#### Model-Specific Overrides
+Assign different FastWeb models to specific agents in `prism_ad/config.py`:
+
+```python
+AGENT_FASTWEB_MODEL_OVERRIDE = {
+    "classifier": "google/gemma-3-27b-it",
+    "risk_calculator": "Fastweb/FastwebMIIA-7B",
 }
 ```
 
@@ -153,18 +187,20 @@ Contains the full clinical analysis results.
 
 ## API Compatibility
 
-FastWeb uses an OpenAI-compatible API format, which means:
+FastWeb uses an OpenAI-compatible API format with JWT authentication:
 
 ### ✅ Supported Features
 - Chat completions (`/v1/chat/completions`)
 - System and user messages
 - Temperature control
 - Standard response format
+- JWT Bearer token authentication
+- Multiple model selection
 
 ### ⚠️ Limitations
-- **Function/Tool Calling**: May not be supported (verify with FastWeb docs)
-- **Embeddings**: Use OpenAI for RAG embeddings
-- **Streaming**: Verify support with FastWeb documentation
+- **Function/Tool Calling**: Not supported (agents requiring tools must use OpenAI)
+- **Embeddings**: Available via `jinaai/jina-embeddings-v3` model
+- **JWT Expiry**: Tokens expire - check expiry dates and renew as needed
 
 ## Performance Considerations
 
@@ -194,12 +230,18 @@ Based on the provider characteristics:
 
 ### Common Issues
 
-1. **FastWeb API Key Not Working**:
+1. **FastWeb JWT Token Not Working**:
 ```python
-# Check configuration
-from prism_ad.config import PROVIDER_CONFIGS
-print(PROVIDER_CONFIGS["fastweb"])
+# Check JWT token configuration
+from prism_ad.config import FASTWEB_TOKENS, FASTWEB_MODEL
+print(f"Current model: {FASTWEB_MODEL}")
+print(f"Token configured: {bool(FASTWEB_TOKENS.get(FASTWEB_MODEL))}")
 ```
+
+2. **JWT Token Expired**:
+- Tokens have expiry dates embedded in the JWT
+- Request new tokens from FastWeb if expired
+- Check the `exp` field in the JWT payload
 
 2. **Agent Using Wrong Provider**:
 ```python
@@ -250,7 +292,9 @@ async def demo_fastweb():
     print("🚀 PRISM-AD with FastWeb Integration Demo")
     
     # Show configuration
+    from prism_ad.config import FASTWEB_ENABLED, FASTWEB_MODEL
     print(f"FastWeb Enabled: {FASTWEB_ENABLED}")
+    print(f"FastWeb Model: {FASTWEB_MODEL}")
     
     # Initialize system
     system = PRISMAgentSystem()
@@ -261,10 +305,15 @@ async def demo_fastweb():
     
     # Show results and timing
     print(f"✅ Processing complete!")
-    print(f"⚡ FastWeb agents: classifier, risk_calculator")
+    print(f"⚡ FastWeb agents using {FASTWEB_MODEL}")
     print(f"🎯 OpenAI agents: parser, validator, quant_model, reporter")
     
     await system.close()
+```
+
+Run the provided demo:
+```bash
+python demo_fastweb.py
 ```
 
 ## Future Enhancements

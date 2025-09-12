@@ -305,9 +305,12 @@ async def main():
     print("\n📋 Current Configuration:")
     print(f"  • FastWeb Enabled: {FASTWEB_ENABLED}")
     if FASTWEB_ENABLED:
-        print(f"  • FastWeb API Key: {'✅ Configured' if PROVIDER_CONFIGS['fastweb'].get('api_key') else '❌ Missing'}")
-        print(f"  • FastWeb Model: {PROVIDER_CONFIGS['fastweb'].get('model', 'Not configured')}")
+        from prism_ad.config import FASTWEB_MODEL, FASTWEB_TOKENS
+        jwt_configured = bool(FASTWEB_TOKENS.get(FASTWEB_MODEL))
+        print(f"  • FastWeb JWT Token: {'✅ Configured' if jwt_configured else '❌ Missing'}")
+        print(f"  • FastWeb Model: {FASTWEB_MODEL}")
         print(f"  • FastWeb URL: {PROVIDER_CONFIGS['fastweb'].get('base_url', 'Not configured')}")
+        print(f"  • Available Models: {', '.join(FASTWEB_TOKENS.keys())}")
     print(f"  • OpenAI API Key: {'✅ Configured' if PROVIDER_CONFIGS['primary'].get('api_key') else '❌ Missing'}")
     print(f"  • OpenAI Model: {PROVIDER_CONFIGS['primary'].get('model', 'Not configured')}")
     

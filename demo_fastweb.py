@@ -22,11 +22,12 @@ async def demo():
     print(f"  • FastWeb Enabled: {FASTWEB_ENABLED}")
     
     if FASTWEB_ENABLED:
-        fastweb_configured = bool(PROVIDER_CONFIGS.get("fastweb", {}).get("api_key"))
-        print(f"  • FastWeb API Key: {'✅ Configured' if fastweb_configured else '❌ Not configured'}")
+        from prism_ad.config import FASTWEB_MODEL, FASTWEB_TOKENS
+        fastweb_configured = bool(FASTWEB_TOKENS.get(FASTWEB_MODEL))
+        print(f"  • FastWeb JWT Token: {'✅ Configured' if fastweb_configured else '❌ Not configured'}")
         
         if fastweb_configured:
-            print(f"  • FastWeb Model: {PROVIDER_CONFIGS['fastweb'].get('model')}")
+            print(f"  • FastWeb Model: {FASTWEB_MODEL}")
             
             # Show which agents will use FastWeb
             fastweb_agents = [
@@ -36,8 +37,9 @@ async def demo():
             if fastweb_agents:
                 print(f"  • FastWeb Agents: {', '.join(fastweb_agents)}")
         else:
-            print("\n⚠️ FastWeb API key not configured!")
-            print("Please set FASTWEB_API_KEY in your .env file")
+            print("\n⚠️ FastWeb JWT token not configured!")
+            print(f"Please ensure JWT token is configured for model: {FASTWEB_MODEL}")
+            print("Check env.example for token configuration")
             return
     else:
         print("\n⚠️ FastWeb is not enabled!")
@@ -186,20 +188,24 @@ if __name__ == "__main__":
     
     # Check if API keys are configured
     openai_configured = bool(os.getenv("OPENAI_API_KEY"))
-    fastweb_configured = bool(os.getenv("FASTWEB_API_KEY"))
     
     if not openai_configured:
         print("\n⚠️ OpenAI API key not found!")
         print("Please set OPENAI_API_KEY in your .env file")
         exit(1)
     
-    if not fastweb_configured and os.getenv("FASTWEB_ENABLED", "false").lower() == "true":
-        print("\n⚠️ FastWeb enabled but API key not found!")
-        print("Please set FASTWEB_API_KEY in your .env file")
-        response = input("\nContinue with OpenAI only? (y/n): ")
-        if response.lower() != 'y':
-            exit(1)
-        os.environ["FASTWEB_ENABLED"] = "false"
+    # Check FastWeb JWT token if enabled
+    if os.getenv("FASTWEB_ENABLED", "false").lower() == "true":
+        from prism_ad.config import FASTWEB_MODEL, FASTWEB_TOKENS
+        fastweb_configured = bool(FASTWEB_TOKENS.get(FASTWEB_MODEL))
+        
+        if not fastweb_configured:
+            print(f"\n⚠️ FastWeb enabled but JWT token not found for model: {FASTWEB_MODEL}")
+            print("Please check env.example for JWT token configuration")
+            response = input("\nContinue with OpenAI only? (y/n): ")
+            if response.lower() != 'y':
+                exit(1)
+            os.environ["FASTWEB_ENABLED"] = "false"
     
     # Run the demo
     asyncio.run(demo())
