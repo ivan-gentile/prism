@@ -48,7 +48,10 @@ async def test_text_parsing(system: PRISMAgentSystem, clinical_text: str, descri
     
     try:
         # Process the clinical text through the new pipeline
-        report = await system.process_patient(clinical_text)
+        report = None
+        async for message in system.process_patient(clinical_text):
+            if isinstance(message, dict) and 'final_report' in message:
+                report = message['final_report']
         
         # Display results
         print("\n" + "🎯 "*20)
@@ -111,7 +114,10 @@ async def test_structured_data_backward_compatibility(system: PRISMAgentSystem):
     }
     
     try:
-        report = await system.process_patient(structured_data)
+        report = None
+        async for message in system.process_patient(structured_data):
+            if isinstance(message, dict) and 'final_report' in message:
+                report = message['final_report']
         print("✅ Backward compatibility test PASSED")
         print(f"   FDA Stage: {report.fda_stage}")
         print(f"   Risk Level: {report.risk_level}")

@@ -31,6 +31,13 @@ from prism_ad.data.patient_model import (
 # Import the quantitative risk calculator tool
 from prism_ad.utils.quant_risk_calculator import calculate_alzheimer_risk
 
+# Add imports for rag
+from prism_ad.config import (
+    RAG_COLLECTION_NAME, RAG_CHROMA_PATH, RAG_EMBEDDING_MODEL,
+    RAG_MIN_YEAR, RAG_TOP_K, RAG_FINAL_K, RAG_SCORE_THRESHOLD
+)
+from prism_ad.rag.risk_rag_memory import RiskRAGMemory, RiskRAGConfig
+
 
 class PRISMAgentSystem:
     """Multi-agent system for Alzheimer's Disease risk assessment"""
@@ -70,14 +77,30 @@ class PRISMAgentSystem:
             system_message=INTAKE_VALIDATOR_PROMPT,
             max_tool_iterations=1
         )
-        
-        # TO BE REMOVED - keeping temporarily for backward compatibility
-        # self.agents["normalizer"] = AssistantAgent(
-        #     name=AGENT_NAMES["normalizer"],
-        #     model_client=self.model_client,
-        #     system_message=NORMALIZER_PROMPT,
-        #     max_tool_iterations=1
-        # )
+
+        # Build Risk RAG Memory (patient-aware evidence injected into context)
+        self.rag_mem = RiskRAGMemory(
+            config=RiskRAGConfig(
+                chroma_base_path=RAG_CHROMA_PATH,
+                collection_name=RAG_COLLECTION_NAME,
+                embedding_model_name=RAG_EMBEDDING_MODEL,
+                k_initial=RAG_TOP_K,
+                k_final=RAG_FINAL_K,
+                min_year=RAG_MIN_YEAR,
+                type_filter=None,           # set to "text" or "table" if you want
+                score_threshold=RAG_SCORE_THRESHOLD,
+            )
+        )
+
+        self.agents["risk_calculator"] = AssistantAgent(
+            name=AGENT_NAMES["risk_calculator"],
+            model_client=self.model_client,
+            system_message=RISK_CALCULATOR_PROMPT,
+            max_tool_iterations=1,
+            memory=[self.rag_mem],    # <-- inject memory
+        )
+
+
         
         self.agents["classifier"] = AssistantAgent(
             name=AGENT_NAMES["classifier"],
@@ -94,14 +117,6 @@ class PRISMAgentSystem:
             tools=[calculate_alzheimer_risk],  # Add the calculator as a tool
             max_tool_iterations=2,  # Allow tool calls
             reflect_on_tool_use=True  # Summarize tool output
-        )
-        
-        # Will become Information Aggregator
-        self.agents["risk_calculator"] = AssistantAgent(
-            name=AGENT_NAMES["risk_calculator"],
-            model_client=self.model_client,
-            system_message=RISK_CALCULATOR_PROMPT,
-            max_tool_iterations=1
         )
         
         self.agents["reporter"] = AssistantAgent(
@@ -263,14 +278,13 @@ class PRISMAgentSystem:
         # Step 2: PARALLEL MODEL EXECUTION (NEW ARCHITECTURE)
         yield emit("\n⚙️ Step 2: PARALLEL MODEL EXECUTION")
         yield emit("-"*40)
-        yield emit("Running 3 models in parallel: Quantitative, FDA Classifier, RAG (placeholder)")
+        yield emit("Running 3 models in parallel: Quantitative, FDA Classifier, RAG")
         
         # Run three models in parallel
-        import asyncio
         parallel_results = await asyncio.gather(
             self._run_quant_model(validation_result),
             self._run_classifier_new(validation_result),
-            self._run_rag_placeholder(validation_result),
+            self._run_rag_evidence(validation_result),
             return_exceptions=True
         )
         
@@ -331,7 +345,7 @@ ASSESSMENT RESULTS
         yield emit(report_text)
         
         # Yield the final report as a data object
-        yield final_report
+        yield {'final_report': final_report}
         
     async def _run_validator(self, patient: PatientData, callback=None) -> Dict[str, Any]:
         """Run the Intake Validator agent"""
@@ -446,29 +460,50 @@ ASSESSMENT RESULTS
             await emit(f"⚠️ Quant Model error: {e}")
             return None
     
-    async def _run_rag_placeholder(self, validation_result: Dict[str, Any], callback=None) -> Dict[str, Any]:
-        """Placeholder for RAG component - to be implemented"""
+    async def _run_rag_evidence(self, validation_result: Dict[str, Any], callback=None) -> Dict[str, Any]:
+        """Run targeted retrieval to produce a human-readable evidence context block."""
         async def emit(msg: str):
-            """Helper to emit messages through callback if provided"""
             print(msg)
             if callback:
                 await callback(msg)
-                
-        await emit("RAG component: Using mock knowledge base...")
-        
-        # Mock RAG output
-        rag_output = """Based on latest clinical guidelines:
-        - Recent studies show ApoE4 impact varies by age
-        - New biomarker thresholds from 2024 consensus
-        - Consider enrollment in AHEAD 3-45 trial if eligible
-        - Lifestyle interventions show 30% risk reduction
-        """
-        
-        return {
-            "rag_context": rag_output,
-            "patient": validation_result["patient"]
-        }
-        
+
+        patient = validation_result["patient"]
+
+        # Build a short query context from patient data (lightweight; memory.update_context will add more)
+        query_bits = []
+        if patient.amyloid_pet_suvr is not None:
+            query_bits.append(f"amyloid PET SUVR {patient.amyloid_pet_suvr}")
+        if patient.csf_abeta42 is not None:
+            query_bits.append(f"CSF Aβ42 {patient.csf_abeta42} pg/mL")
+        if patient.csf_ptau181 is not None:
+            query_bits.append(f"p-tau {patient.csf_ptau181} pg/mL")
+        if patient.apoe4_copies is not None:
+            query_bits.append(f"ApoE4 {patient.apoe4_copies} copies")
+        if patient.mmse_score is not None:
+            query_bits.append(f"MMSE {patient.mmse_score}")
+        if patient.hippocampus_volume_left and patient.hippocampus_volume_right:
+            avg_hip = (patient.hippocampus_volume_left + patient.hippocampus_volume_right) / 2
+            query_bits.append(f"hippocampal volume ~{avg_hip:.0f} mm³")
+
+        # One consolidated query string for logging; memory will still expand subqueries
+        concise_query = " | ".join(query_bits) if query_bits else "AD risk evidence thresholds and multipliers"
+        await emit(f"RAG evidence: querying with context → {concise_query}")
+
+        # Use the RAG memory directly to produce a readable 'rag_context' to show in the console/UI.
+        rag_block = "Evidence:\n"
+        if hasattr(self, 'rag_mem') and self.rag_mem:
+            mem_results = await self.rag_mem.query(concise_query)
+            if mem_results:
+                for mc in mem_results[:6]:
+                    rag_block += f"• {mc.content}\n"
+            else:
+                rag_block += "• No matching evidence retrieved with current filters.\n"
+        else:
+            rag_block += "• RAG memory not available.\n"
+
+        return {"rag_context": rag_block, "patient": patient}
+
+
     async def _run_classifier_new(self, validation_result: Dict[str, Any], callback=None) -> Dict[str, Any]:
         """Run the FDA Stage Classifier agent (new architecture without normalization)"""
         async def emit(msg: str):

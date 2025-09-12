@@ -18,3 +18,11 @@ AGENT_NAMES = {
     "risk_calculator": "risk_calculator",  # Will become aggregator
     "reporter": "report_synthesizer"
 }
+# --- RAG Settings ---
+RAG_COLLECTION_NAME = "alz_guidelines"   # folder under data/collections, embeddings, chromadb
+RAG_CHROMA_PATH = "data/chromadb"        # base path holding per-collection Chroma stores
+RAG_EMBEDDING_MODEL = "text-embedding-3-small"  # OpenAI's default embedding model
+RAG_MIN_YEAR = 2018
+RAG_TOP_K = 18       # initial recall from Chroma before rerank
+RAG_FINAL_K = 8      # after cross-encoder rerank
+RAG_SCORE_THRESHOLD = 0.35
