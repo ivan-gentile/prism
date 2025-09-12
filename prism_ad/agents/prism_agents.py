@@ -9,7 +9,8 @@ from autogen_agentchat.messages import TextMessage, ToolCallRequestEvent
 from autogen_ext.models.openai import OpenAIChatCompletionClient
 from pydantic import BaseModel
 
-from prism_ad.config import OPENAI_API_KEY, MODEL_NAME, AGENT_NAMES
+from prism_ad.config import OPENAI_API_KEY, MODEL_NAME, AGENT_NAMES, FASTWEB_ENABLED
+from prism_ad.agents.model_providers import ModelProviderFactory, MultiProviderAgentSystem
 from prism_ad.agents.agent_prompts import (
     PARSER_PROMPT,
     INTAKE_VALIDATOR_PROMPT,
@@ -43,37 +44,44 @@ class PRISMAgentSystem:
     """Multi-agent system for Alzheimer's Disease risk assessment"""
     
     def __init__(self, model_name: str = MODEL_NAME, api_key: str = OPENAI_API_KEY):
-        """Initialize the PRISM-AD agent system"""
+        """Initialize the PRISM-AD agent system with multi-provider support"""
         self.model_name = model_name
         self.api_key = api_key
         self.agents = {}
-        self.model_client = None
+        self.model_client = None  # Legacy support for single client
+        self.provider_system = MultiProviderAgentSystem()  # New multi-provider system
         self.conversation_history = []
         self.processing_results = {}
         
     async def initialize_agents(self):
-        """Create and initialize all specialized agents"""
-        print("🔧 Initializing PRISM-AD Agent System (New Architecture)...")
+        """Create and initialize all specialized agents with multi-provider support"""
+        print("🔧 Initializing PRISM-AD Agent System (Multi-Provider Architecture)...")
+        if FASTWEB_ENABLED:
+            print("✨ FastWeb integration enabled for selected agents")
+        else:
+            print("📌 Using OpenAI models for all agents")
         
-        # Create model client
+        # Create default model client for backward compatibility
         self.model_client = OpenAIChatCompletionClient(
             model=self.model_name,
             api_key=self.api_key,
             temperature=0.2  # Low temperature for consistent medical analysis
         )
         
-        # Create each specialized agent
+        # Create each specialized agent with appropriate provider
         # NEW: Parser agent
+        parser_client = self.provider_system.get_or_create_client("parser")
         self.agents["parser"] = AssistantAgent(
             name=AGENT_NAMES["parser"],
-            model_client=self.model_client,
+            model_client=parser_client,
             system_message=PARSER_PROMPT,
             max_tool_iterations=1
         )
         
+        validator_client = self.provider_system.get_or_create_client("validator")
         self.agents["validator"] = AssistantAgent(
             name=AGENT_NAMES["validator"],
-            model_client=self.model_client,
+            model_client=validator_client,
             system_message=INTAKE_VALIDATOR_PROMPT,
             max_tool_iterations=1
         )
@@ -92,41 +100,52 @@ class PRISMAgentSystem:
             )
         )
 
+        risk_calc_client = self.provider_system.get_or_create_client("risk_calculator")
         self.agents["risk_calculator"] = AssistantAgent(
             name=AGENT_NAMES["risk_calculator"],
-            model_client=self.model_client,
+            model_client=risk_calc_client,
             system_message=RISK_CALCULATOR_PROMPT,
             max_tool_iterations=1,
             memory=[self.rag_mem],    # <-- inject memory
         )
 
 
-        
+        classifier_client = self.provider_system.get_or_create_client("classifier")
         self.agents["classifier"] = AssistantAgent(
             name=AGENT_NAMES["classifier"],
-            model_client=self.model_client,
+            model_client=classifier_client,
             system_message=FDA_CLASSIFIER_PROMPT,
             max_tool_iterations=1
         )
         
-        # NEW: Quantitative Model with tool calling
+        # NEW: Quantitative Model with tool calling (requires OpenAI for tool support)
+        quant_client = self.provider_system.get_or_create_client("quant_model")
         self.agents["quant_model"] = AssistantAgent(
             name=AGENT_NAMES["quant_model"],
-            model_client=self.model_client,
+            model_client=quant_client,
             system_message=QUANT_MODEL_PROMPT,
             tools=[calculate_alzheimer_risk],  # Add the calculator as a tool
             max_tool_iterations=2,  # Allow tool calls
             reflect_on_tool_use=True  # Summarize tool output
         )
         
+        reporter_client = self.provider_system.get_or_create_client("reporter")
         self.agents["reporter"] = AssistantAgent(
             name=AGENT_NAMES["reporter"],
-            model_client=self.model_client,
+            model_client=reporter_client,
             system_message=REPORT_SYNTHESIZER_PROMPT,
             max_tool_iterations=1
         )
         
         print("✅ All agents initialized successfully")
+        
+        # Print provider summary
+        summary = self.provider_system.get_provider_summary()
+        if summary["fastweb_enabled"]:
+            fastweb_agents = [agent for agent, info in summary["agent_assignments"].items() 
+                            if info["provider"] == "FastWeb"]
+            if fastweb_agents:
+                print(f"🚀 FastWeb agents: {', '.join(fastweb_agents)}")
         
     async def parse_clinical_text(self, clinical_text: str, callback=None) -> Dict[str, Any]:
         """Parse natural language clinical description into structured data"""
@@ -866,9 +885,13 @@ ASSESSMENT RESULTS
         
     async def close(self):
         """Clean up resources"""
+        # Close multi-provider clients
+        await self.provider_system.close_all()
+        
+        # Close legacy model client if exists
         if self.model_client:
             await self.model_client.close()
-            print("🔒 Model client closed")
+            print("🔒 Legacy model client closed")
             
     async def get_agent_conversation(self, agent_name: str) -> List[str]:
         """Get conversation history for a specific agent"""
