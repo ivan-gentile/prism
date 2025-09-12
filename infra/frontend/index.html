@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PRISM-AD | Alzheimer's Risk Assessment System</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <div class="logo-section">
+                    <div class="logo">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <div class="title-section">
+                        <h1>PRISM-AD</h1>
+                        <p class="subtitle">Multi-Agent Alzheimer's Risk Assessment System</p>
+                    </div>
+                </div>
+                <div class="header-badges">
+                    <span class="badge badge-success"><i class="fas fa-check-circle"></i> FDA Compliant</span>
+                    <span class="badge badge-info"><i class="fas fa-robot"></i> 6 AI Agents</span>
+                    <span class="badge badge-warning"><i class="fas fa-clock"></i> 5-Year Prediction</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="input-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-file-medical"></i> Clinical Input</h2>
+                    <button class="btn-example" onclick="loadExample()">
+                        <i class="fas fa-lightbulb"></i> Load Example
+                    </button>
+                </div>
+                
+                <div class="input-card">
+                    <textarea 
+                        id="clinicalInput" 
+                        class="clinical-input" 
+                        placeholder="Enter clinical information about the patient...
+
+Example format:
+• Patient demographics (age, gender)
+• Cognitive test scores (MMSE, MoCA)
+• Biomarker data (CSF proteins, PET scans)
+• Genetic factors (ApoE4 status)
+• Clinical observations and symptoms"
+                        rows="10"
+                    ></textarea>
+                    
+                    <div class="input-actions">
+                        <button id="assessBtn" class="btn btn-primary" onclick="performAssessment()">
+                            <i class="fas fa-stethoscope"></i> Perform Assessment
+                        </button>
+                        <button class="btn btn-secondary" onclick="clearInput()">
+                            <i class="fas fa-eraser"></i> Clear
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Quick Examples -->
+                <div class="examples-section">
+                    <h3><i class="fas fa-bookmark"></i> Quick Examples</h3>
+                    <div class="example-chips">
+                        <button class="chip" onclick="loadExample('mild')">Mild Cognitive Impairment</button>
+                        <button class="chip" onclick="loadExample('moderate')">Moderate Risk Case</button>
+                        <button class="chip" onclick="loadExample('high')">High Risk Case</button>
+                        <button class="chip" onclick="loadExample('comprehensive')">Comprehensive Assessment</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Processing Status -->
+            <div id="processingSection" class="processing-section" style="display: none;">
+                <div class="processing-card">
+                    <div class="processing-header">
+                        <div class="spinner"></div>
+                        <h3>Processing Clinical Data</h3>
+                    </div>
+                    <div id="progressLog" class="progress-log"></div>
+                </div>
+            </div>
+
+            <!-- Results Section -->
+            <div id="resultsSection" class="results-section" style="display: none;">
+                <div class="section-header">
+                    <h2><i class="fas fa-chart-line"></i> Assessment Results</h2>
+                    <button class="btn-secondary" onclick="downloadReport()">
+                        <i class="fas fa-download"></i> Download Report
+                    </button>
+                </div>
+
+                <!-- Risk Overview Cards -->
+                <div class="risk-cards">
+                    <div class="risk-card">
+                        <div class="risk-icon">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div class="risk-content">
+                            <h4>Risk Level</h4>
+                            <p id="riskLevel" class="risk-value">-</p>
+                        </div>
+                    </div>
+                    <div class="risk-card">
+                        <div class="risk-icon">
+                            <i class="fas fa-tag"></i>
+                        </div>
+                        <div class="risk-content">
+                            <h4>FDA Stage</h4>
+                            <p id="fdaStage" class="risk-value">-</p>
+                        </div>
+                    </div>
+                    <div class="risk-card">
+                        <div class="risk-icon">
+                            <i class="fas fa-percentage"></i>
+                        </div>
+                        <div class="risk-content">
+                            <h4>Confidence</h4>
+                            <p id="confidence" class="risk-value">-</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Detailed Results -->
+                <div class="results-grid">
+                    <!-- Executive Summary -->
+                    <div class="result-card">
+                        <h3><i class="fas fa-clipboard"></i> Executive Summary</h3>
+                        <div id="executiveSummary" class="result-content"></div>
+                    </div>
+
+                    <!-- Key Findings -->
+                    <div class="result-card">
+                        <h3><i class="fas fa-microscope"></i> Key Findings</h3>
+                        <div id="keyFindings" class="result-content">
+                            <ul class="findings-list"></ul>
+                        </div>
+                    </div>
+
+                    <!-- Clinical Recommendations -->
+                    <div class="result-card">
+                        <h3><i class="fas fa-prescription"></i> Clinical Recommendations</h3>
+                        <div id="recommendations" class="result-content">
+                            <ul class="recommendations-list"></ul>
+                        </div>
+                    </div>
+
+                    <!-- Follow-up Timeline -->
+                    <div class="result-card">
+                        <h3><i class="fas fa-calendar-check"></i> Follow-up Timeline</h3>
+                        <div id="followUp" class="result-content"></div>
+                    </div>
+                </div>
+
+                <!-- Agent Details (Optional) -->
+                <div class="agent-details">
+                    <h3><i class="fas fa-robot"></i> Agent Consensus Details</h3>
+                    <div class="agent-badges">
+                        <span class="agent-badge"><i class="fas fa-check"></i> Parser Agent</span>
+                        <span class="agent-badge"><i class="fas fa-check"></i> Validator Agent</span>
+                        <span class="agent-badge"><i class="fas fa-check"></i> FDA Classifier</span>
+                        <span class="agent-badge"><i class="fas fa-check"></i> Quantitative Risk</span>
+                        <span class="agent-badge"><i class="fas fa-check"></i> RAG Knowledge</span>
+                        <span class="agent-badge"><i class="fas fa-check"></i> Report Generator</span>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>© 2025 PRISM-AD System | FDA-Compliant Multi-Agent Architecture | Powered by AutoGen & OpenAI</p>
+        </footer>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>

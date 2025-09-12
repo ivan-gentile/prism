@@ -1,0 +1,9 @@
+[33me0345c0[m[33m ([m[1;36mHEAD -> [m[1;32mvero[m[33m)[m working fastwebMIIA for agents without too calls
+[33meb23135[m[33m ([m[1;31morigin/vero[m[33m)[m try work on fastweb models integration
+[33m8855723[m new prompts
+[33mcdacbc1[m working rag
+[33m72de228[m real time messages of agents workflow
+[33m2929c51[m docs: update README with web interface instructions and fix module imports
+[33mce0bfb0[m[33m ([m[1;32mmain[m[33m)[m stand in quant model implemented with working tool call functoin TO DO: FIX INFRA connection
+[33m9dc8343[m update claude
+[33md385ced[m Initial commit - clean repository without API keys

@@ -1,14 +1,17 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from typing import AsyncGenerator, Callable
 import asyncio
 import json
+import os
+from pathlib import Path
 
 from ..model.simulator import PRISMAlzheimerModel
 
-app = FastAPI()
+app = FastAPI(title="PRISM-AD API", version="1.0.0")
 
 # Configure CORS
 app.add_middleware(
@@ -60,3 +63,22 @@ async def chat_stream(message: Message):
         stream_process(message.text, progress_callback),
         media_type="text/event-stream"
     )
+
+# Serve the frontend
+frontend_path = Path(__file__).parent.parent / "frontend"
+
+# Mount static files
+if frontend_path.exists():
+    app.mount("/static", StaticFiles(directory=str(frontend_path)), name="static")
+    
+    @app.get("/")
+    async def serve_frontend():
+        """Serve the main frontend page"""
+        index_path = frontend_path / "index.html"
+        if index_path.exists():
+            return FileResponse(str(index_path))
+        return {"message": "Frontend not found. Please ensure index.html exists in infra/frontend/"}
+else:
+    @app.get("/")
+    async def root():
+        return {"message": "PRISM-AD API is running. Frontend files not found."}
