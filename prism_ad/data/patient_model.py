@@ -2,6 +2,7 @@
 from pydantic import BaseModel, Field, field_validator
 from typing import Optional, List, Dict, Any
 from enum import Enum
+from datetime import datetime
 
 
 class ApoE4Status(str, Enum):
@@ -109,10 +110,24 @@ class ClinicalReport(BaseModel):
     fda_stage: FDAStage
     risk_level: str  # Low, Moderate, High, Very High
     key_findings: List[str]
-    recommendations: List[str]
+    recommendations: List[str]  # Legacy field name
+    clinical_recommendations: List[str] = Field(default_factory=list)  # New field for infra
     follow_up_timeline: str
+    confidence_score: Optional[str] = Field(None, description="Overall confidence in assessment")
+    timestamp: Optional[datetime] = Field(None, description="Processing timestamp")
     clinical_trial_eligibility: List[str] = Field(default_factory=list)
     detailed_results: Dict[str, Any] = Field(default_factory=dict)
+    
+    def __init__(self, **data):
+        """Initialize with backward compatibility"""
+        from datetime import datetime
+        super().__init__(**data)
+        # Copy recommendations to clinical_recommendations for compatibility
+        if self.recommendations and not self.clinical_recommendations:
+            self.clinical_recommendations = self.recommendations
+        # Set timestamp if not provided
+        if not self.timestamp:
+            self.timestamp = datetime.now()
 
 
 # Reference ranges for normalization (simplified for demo)

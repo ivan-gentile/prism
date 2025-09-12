@@ -28,6 +28,8 @@ from prism_ad.data.patient_model import (
     ClinicalReport,
     REFERENCE_RANGES
 )
+# Import the quantitative risk calculator tool
+from prism_ad.utils.quant_risk_calculator import calculate_alzheimer_risk
 
 
 class PRISMAgentSystem:
@@ -84,12 +86,14 @@ class PRISMAgentSystem:
             max_tool_iterations=1
         )
         
-        # NEW: Quantitative Model
+        # NEW: Quantitative Model with tool calling
         self.agents["quant_model"] = AssistantAgent(
             name=AGENT_NAMES["quant_model"],
             model_client=self.model_client,
             system_message=QUANT_MODEL_PROMPT,
-            max_tool_iterations=1
+            tools=[calculate_alzheimer_risk],  # Add the calculator as a tool
+            max_tool_iterations=2,  # Allow tool calls
+            reflect_on_tool_use=True  # Summarize tool output
         )
         
         # Will become Information Aggregator
@@ -334,46 +338,52 @@ class PRISMAgentSystem:
     #     pass
     
     async def _run_quant_model(self, validation_result: Dict[str, Any]) -> Dict[str, Any]:
-        """Run the Quantitative Risk Model agent"""
+        """Run the Quantitative Risk Model agent with tool calling"""
         patient = validation_result["patient"]
         
-        task = f"""Calculate quantitative risk score for the following patient:
+        # Create a task that encourages tool use
+        task = f"""Use the calculate_alzheimer_risk tool to compute the quantitative risk score for this patient.
         
-        Demographics:
-        - Age: {patient.age if patient.age else 'Not available'}
-        - Sex: {patient.sex if patient.sex else 'Not available'}
-        - ApoE4 copies: {patient.apoe4_copies if patient.apoe4_copies else 'Not available'}
+        Patient data to pass to the tool:
+        - age: {patient.age if patient.age else None}
+        - apoe4_copies: {f'"{patient.apoe4_copies}"' if patient.apoe4_copies else None}
+        - csf_abeta42: {patient.csf_abeta42 if patient.csf_abeta42 else None}
+        - csf_ptau: {patient.csf_ptau181 if patient.csf_ptau181 else None}
+        - csf_total_tau: {patient.csf_total_tau if patient.csf_total_tau else None}
+        - amyloid_pet: {patient.amyloid_pet_suvr if patient.amyloid_pet_suvr else None}
+        - hippocampus_left: {patient.hippocampus_volume_left if patient.hippocampus_volume_left else None}
+        - hippocampus_right: {patient.hippocampus_volume_right if patient.hippocampus_volume_right else None}
+        - mmse: {patient.mmse_score if patient.mmse_score else None}
+        - moca: {patient.moca_score if patient.moca_score else None}
+        - cdr_sum: {patient.cdr_sum if patient.cdr_sum else None}
         
-        Biomarkers:
-        - CSF Aβ42: {patient.csf_abeta42 if patient.csf_abeta42 else 'Not available'} pg/mL
-        - CSF p-tau181: {patient.csf_ptau181 if patient.csf_ptau181 else 'Not available'} pg/mL
-        - CSF total tau: {patient.csf_total_tau if patient.csf_total_tau else 'Not available'} pg/mL
-        - Amyloid PET SUVR: {patient.amyloid_pet_suvr if patient.amyloid_pet_suvr else 'Not available'}
-        - Hippocampus volume (avg): {((patient.hippocampus_volume_left or 0) + (patient.hippocampus_volume_right or 0)) / 2 if patient.hippocampus_volume_left else 'Not available'} mm³
-        
-        Cognitive:
-        - MMSE: {patient.mmse_score if patient.mmse_score else 'Not available'}
-        - MoCA: {patient.moca_score if patient.moca_score else 'Not available'}
-        - CDR-SB: {patient.cdr_sum if patient.cdr_sum else 'Not available'}
-        
-        Calculate:
-        1. Raw biomarker score (0-100)
-        2. Age/genetics adjusted risk
-        3. 5-year progression probability
-        4. Confidence interval based on data completeness
-        5. Top risk drivers
-        
-        Show your calculations for transparency.
+        Call the calculate_alzheimer_risk tool with the available parameters, then analyze and summarize the results.
+        Focus on:
+        1. The calculated risk score and category
+        2. The 5-year progression probability
+        3. Key risk drivers
+        4. Confidence level based on data completeness
         """
         
         try:
             result = await self.agents["quant_model"].run(task=task)
+            
+            # The agent should have used the tool and provided a summary
             quant_msg = result.messages[-1].content if result.messages else ""
-            print(f"Quant Model calculated: {quant_msg[:200]}...")
+            
+            # Look for tool call results in the messages
+            tool_result = None
+            for msg in result.messages:
+                if hasattr(msg, 'content') and 'risk_score' in str(msg.content):
+                    tool_result = msg.content
+                    break
+            
+            print(f"Quant Model (with tool) calculated: {str(quant_msg)[:200]}...")
             
             self.processing_results["quant_model"] = quant_msg
             return {
                 "quant_assessment": quant_msg,
+                "tool_result": tool_result,
                 "patient": patient
             }
         except Exception as e:
@@ -633,89 +643,98 @@ class PRISMAgentSystem:
         return report
     
     async def _run_reporter_new(self, patient: PatientData, validation_result: Dict[str, Any], aggregated_result: Dict[str, Any]) -> ClinicalReport:
-        """Run the Report Synthesizer agent (new architecture)"""
+        """Run the simplified Report Synthesizer agent"""
         
-        task = f"""Create a comprehensive clinical report based on the aggregated assessment:
+        task = f"""Create a clear clinical report based on the assessment results.
         
         PATIENT: {patient.patient_id}, {patient.age}yo {patient.sex or 'Unknown'}
         
-        VALIDATION SUMMARY:
-        {validation_result['validation'][:300]}
-        
         AGGREGATED ASSESSMENT:
-        {aggregated_result['aggregated_assessment'][:800]}
+        {aggregated_result['aggregated_assessment'][:1000]}
         
-        Generate a clinical report with:
-        1. Executive summary (2-3 sentences)
-        2. Consensus FDA stage and confidence
-        3. Unified risk level (Low/Moderate/High/Very High)
-        4. Key findings from all models (top 3-5)
-        5. Clinical recommendations (prioritized)
-        6. Follow-up timeline
-        7. Model agreement/disagreement notes
-        
-        Format the output to be clear, actionable, and suitable for both clinicians and informed patients.
-        Include areas where the models agreed or disagreed for transparency.
+        Follow the exact format specified in your instructions.
+        Focus on clarity and actionable recommendations.
         """
         
         result = await self.agents["reporter"].run(task=task)
-        report_msg = result.messages[-1].content if result.messages else ""
+        report_text = result.messages[-1].content if result.messages else ""
         
-        # Parse and structure the report (simplified)
+        # Parse the plain text report
         from prism_ad.data.patient_model import FDAStage
+        import re
         
-        # Extract stage and risk from aggregated assessment
-        report_lower = aggregated_result['aggregated_assessment'].lower()
+        # Helper function to extract value after a label
+        def extract_value(text, label, default="Unknown"):
+            pattern = rf"{label}[:\s]*([^\n]+)"
+            match = re.search(pattern, text, re.IGNORECASE)
+            return match.group(1).strip() if match else default
         
-        # Determine FDA stage
+        # Parse FDA stage
+        fda_stage_text = extract_value(report_text, "FDA Stage", "").lower()
         fda_stage = FDAStage.UNCERTAIN
-        if "stage 1" in report_lower:
+        if "stage 1" in fda_stage_text:
             fda_stage = FDAStage.STAGE_1
-        elif "stage 2" in report_lower:
+        elif "stage 2" in fda_stage_text:
             fda_stage = FDAStage.STAGE_2
-        elif "stage 3" in report_lower or "mci" in report_lower:
+        elif "stage 3" in fda_stage_text or "mci" in fda_stage_text:
             fda_stage = FDAStage.STAGE_3
-        elif "stage 4" in report_lower:
+        elif "stage 4" in fda_stage_text:
             fda_stage = FDAStage.STAGE_4
-        elif "normal" in report_lower:
+        elif "stage 5" in fda_stage_text:
+            fda_stage = FDAStage.STAGE_5
+        elif "stage 6" in fda_stage_text:
+            fda_stage = FDAStage.STAGE_6
+        elif "normal" in fda_stage_text:
             fda_stage = FDAStage.NORMAL
-            
-        # Determine risk level
-        risk_level = "Moderate"
-        if "very high" in report_lower:
-            risk_level = "Very High"
-        elif "high risk" in report_lower or "high (" in report_lower:
-            risk_level = "High"
-        elif "low risk" in report_lower or "low (" in report_lower:
-            risk_level = "Low"
         
-        # Extract key findings
-        key_findings = [
-            "Multi-model consensus assessment completed",
-            "See detailed report for model-specific insights"
-        ]
+        # Parse risk level
+        risk_level = extract_value(report_text, "Risk Level", "Moderate")
+        
+        # Parse confidence score
+        confidence_score = extract_value(report_text, "Confidence Score", "Moderate")
+        
+        # Parse follow-up timeline
+        follow_up = extract_value(report_text, "Next assessment", "6 months")
+        
+        # Extract executive summary (first paragraph or section)
+        exec_summary_match = re.search(r"EXECUTIVE SUMMARY[:\s]*([^\n]+(?:\n[^\n]+)?)", report_text, re.IGNORECASE)
+        executive_summary = exec_summary_match.group(1).strip() if exec_summary_match else report_text[:300]
+        
+        # Extract key findings (look for bullet points after KEY FINDINGS)
+        key_findings = []
+        findings_match = re.search(r"KEY FINDINGS[:\s]*\n((?:[•\-\*][^\n]+\n?)+)", report_text, re.IGNORECASE)
+        if findings_match:
+            findings_text = findings_match.group(1)
+            key_findings = [line.strip().lstrip('•-* ') for line in findings_text.split('\n') if line.strip()]
+        if not key_findings:
+            key_findings = ["Assessment completed", "See full report for details"]
         
         # Extract recommendations
-        recommendations = [
-            "Follow clinical guidelines based on consensus",
-            "Consider multi-disciplinary evaluation"
-        ]
+        recommendations = []
+        rec_match = re.search(r"CLINICAL RECOMMENDATIONS[:\s]*\n((?:[•\-\*][^\n]+\n?)+)", report_text, re.IGNORECASE)
+        if rec_match:
+            rec_text = rec_match.group(1)
+            recommendations = [line.strip().lstrip('•-* ') for line in rec_text.split('\n') if line.strip()]
+        if not recommendations:
+            recommendations = ["Follow standard clinical guidelines", "Schedule regular monitoring"]
         
-        # Create structured report
+        # Create structured report with all required fields
         report = ClinicalReport(
             patient_id=patient.patient_id,
             assessment_date=datetime.now().isoformat(),
-            executive_summary=report_msg[:500] if len(report_msg) > 500 else report_msg,
+            executive_summary=executive_summary,
             fda_stage=fda_stage,
             risk_level=risk_level,
-            key_findings=key_findings,
-            recommendations=recommendations,
-            follow_up_timeline="6 months" if "high" in risk_level.lower() else "12 months",
+            key_findings=key_findings[:5],  # Limit to 5
+            recommendations=recommendations[:5],  # Limit to 5
+            clinical_recommendations=recommendations[:5],  # For infrastructure compatibility
+            follow_up_timeline=follow_up,
+            confidence_score=confidence_score,
+            timestamp=datetime.now(),
             clinical_trial_eligibility=[],
             detailed_results={
-                "full_report": report_msg,
-                "validation": validation_result['validation'],
-                "aggregated_assessment": aggregated_result['aggregated_assessment'],
+                "full_report": report_text,
+                "aggregated_assessment": aggregated_result.get('aggregated_assessment', ''),
                 "model_outputs": {
                     "quantitative": aggregated_result.get('quant_result', {}).get('quant_assessment', 'N/A'),
                     "fda_classification": aggregated_result.get('classification_result', {}).get('classification', 'N/A'),
@@ -726,7 +745,7 @@ class PRISMAgentSystem:
         
         print(f"\n📋 FINAL REPORT PREVIEW (NEW ARCHITECTURE):")
         print("-"*40)
-        print(report_msg[:500])
+        print(report_text[:500])
         
         return report
         
