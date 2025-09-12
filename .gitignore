@@ -6,3 +6,8 @@ __pycache__/
 env_new
 data/chromadb/
 data/collections/
+env_new
+.env
+.env.local
+.env.production
+*.env
