@@ -1,0 +1,18 @@
+# FastWeb Llama-3.3-70B Configuration
+# Copy these environment variables to your .env file or set them in PowerShell
+
+# Model Configuration
+MODEL_NAME=meta/llama-3.3-70b-instruct
+BASE_URL=https://bpod1.ai-factory.fastweb.it/v1
+
+# API Key (you need to provide your FastWeb API key)
+OPENAI_API_KEY=your-fastweb-api-key-here
+
+# Instructions:
+# 1. Get your API key from FastWeb
+# 2. Replace 'your-fastweb-api-key-here' with your actual FastWeb API key
+# 3. Set these environment variables in PowerShell:
+#    $env:MODEL_NAME="meta/llama-3.3-70b-instruct"
+#    $env:BASE_URL="https://bpod1.ai-factory.fastweb.it/v1"
+#    $env:OPENAI_API_KEY="your-actual-fastweb-api-key"
+# 4. Run: python test_clinician_fastweb_agent.py

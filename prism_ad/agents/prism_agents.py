@@ -9,10 +9,12 @@ from autogen_agentchat.messages import TextMessage, ToolCallRequestEvent
 from autogen_ext.models.openai import OpenAIChatCompletionClient
 from pydantic import BaseModel
 
-from prism_ad.config import OPENAI_API_KEY, MODEL_NAME, AGENT_NAMES
+from prism_ad.config import OPENAI_API_KEY, MODEL_NAME, BASE_URL, AGENT_NAMES
 from prism_ad.agents.agent_prompts import (
     RAG_AGENT_PROMPT,
     CLINICIAN_AGENT_PROMPT,
+    CLINICIAN_FASTWEB_AGENT_PROMPT,
+    CLINICIAN_GPT4O_AGENT_PROMPT,
     COX_AGENT_PROMPT,
     CONSENSUS_AGENT_PROMPT,
     FINAL_RESPONSE_AGENT_PROMPT
@@ -31,10 +33,11 @@ from prism_ad.data.patient_model import (
 class PRISMAgentSystem:
     """Multi-agent system for Alzheimer's Disease risk assessment using RAG, Clinician, Cox, Consensus, and Final Response agents"""
     
-    def __init__(self, model_name: str = MODEL_NAME, api_key: str = OPENAI_API_KEY):
+    def __init__(self, model_name: str = MODEL_NAME, api_key: str = OPENAI_API_KEY, base_url: str = BASE_URL):
         """Initialize the PRISM-AD agent system"""
         self.model_name = model_name
         self.api_key = api_key
+        self.base_url = base_url
         self.agents = {}
         self.model_client = None
         self.conversation_history = []
@@ -45,10 +48,36 @@ class PRISMAgentSystem:
         print("Initializing PRISM-AD Agent System...")
         
         # Create model client
+        # For custom models (like FastWeb), we need to provide model_info
+        model_info = None
+        if self.model_name not in ["gpt-4o-mini", "gpt-4o", "gpt-3.5-turbo"]:
+            # Custom model - provide basic model info with all required fields
+            model_info = {
+                "model": self.model_name,
+                "context_length": 4096,  # Default context length
+                "max_tokens": 2048,      # Default max tokens
+                "supports_function_calling": True,
+                "supports_vision": False,
+                "vision": False,  # Required field for autogen v0.4.7+
+                "function_calling": True,  # Required field for autogen v0.4.7+
+                "json_output": True,  # Required field for autogen v0.4.7+
+                "family": "llama"  # Required field for autogen v0.4.7+
+            }
+        
+        # Create HTTP client with SSL verification disabled for FastWeb
+        import httpx
+        http_client = None
+        if "fastweb.it" in self.base_url or "ai-factory" in self.base_url:
+            # Disable SSL verification for FastWeb endpoints
+            http_client = httpx.AsyncClient(verify=False)
+        
         self.model_client = OpenAIChatCompletionClient(
             model=self.model_name,
             api_key=self.api_key,
-            temperature=0.2  # Low temperature for consistent medical analysis
+            base_url=self.base_url,
+            temperature=0.2,  # Low temperature for consistent medical analysis
+            model_info=model_info,
+            http_client=http_client
         )
         
         # Create each specialized agent
@@ -63,6 +92,20 @@ class PRISMAgentSystem:
             name="Clinician_Agent",
             model_client=self.model_client,
             system_message=CLINICIAN_AGENT_PROMPT,
+            max_tool_iterations=1
+        )
+        
+        self.agents["clinician_fastweb"] = AssistantAgent(
+            name="Clinician_FASTWEB_Agent",
+            model_client=self.model_client,
+            system_message=CLINICIAN_FASTWEB_AGENT_PROMPT,
+            max_tool_iterations=1
+        )
+        
+        self.agents["clinician_gpt4o"] = AssistantAgent(
+            name="Clinician_GPT4O_Agent",
+            model_client=self.model_client,
+            system_message=CLINICIAN_GPT4O_AGENT_PROMPT,
             max_tool_iterations=1
         )
         
@@ -216,6 +259,90 @@ Please provide your analysis in the exact JSON format specified in your system p
         
         self.processing_results["clinician"] = clinician_response
         return clinician_response
+        
+    async def _run_clinician_fastweb_agent(self, patient: PatientData) -> str:
+        """Run the Clinician FASTWEB agent"""
+        # Create input JSON for the agent (same format as Clinician)
+        input_data = {
+            "patient_profile": {
+                "age": patient.age,
+                "sex": patient.sex or "unknown",
+                "apoE4_status": patient.apoe4_copies.value if patient.apoe4_copies else "unknown",
+                "mmse": patient.mmse_score,
+                "cdr": patient.cdr_sum or 0.0,
+                "adas13": patient.adas_cog13,
+                "adcs_pacc": "not_available",
+                "ravlt_total": 45,  # Default value
+                "csf_abeta42": patient.csf_abeta42,
+                "csf_abeta42_abeta40_ratio": (patient.csf_abeta42 / patient.csf_abeta40) if patient.csf_abeta42 and patient.csf_abeta40 else "not_available",
+                "csf_ptau181": patient.csf_ptau181,
+                "csf_ttau": patient.csf_total_tau,
+                "pet_piB_centiloids": patient.amyloid_pet_suvr,
+                "mri_hippocampal_volume": (patient.hippocampus_volume_left + patient.hippocampus_volume_right) / 2 if patient.hippocampus_volume_left and patient.hippocampus_volume_right else "not_available",
+                "mri_ventricular_volume": "not_available"
+            },
+            "normative_refs": [
+                "ADNI_norms_IF>5_2020",
+                "DOI:10.1000/xyz123 (2021)"
+            ],
+            "stage_hint": "Stage1",
+            "question": "Estimate 5-year risk of progression to FDA Stage3 (MCI AD/Progressor)"
+        }
+        
+        task = f"""Analyze the following patient data and provide a JSON response following the unified schema:
+
+{json.dumps(input_data, indent=2)}
+
+Please provide your analysis in the exact JSON format specified in your system prompt."""
+        
+        result = await self.agents["clinician_fastweb"].run(task=task)
+        clinician_fastweb_response = result.messages[-1].content if result.messages else ""
+        print(f"Clinician FASTWEB Agent says: {clinician_fastweb_response[:200]}...")
+        
+        self.processing_results["clinician_fastweb"] = clinician_fastweb_response
+        return clinician_fastweb_response
+        
+    async def _run_clinician_gpt4o_agent(self, patient: PatientData) -> str:
+        """Run the Clinician GPT4o agent"""
+        # Create input JSON for the agent (same format as Clinician)
+        input_data = {
+            "patient_profile": {
+                "age": patient.age,
+                "sex": patient.sex or "unknown",
+                "apoE4_status": patient.apoe4_copies.value if patient.apoe4_copies else "unknown",
+                "mmse": patient.mmse_score,
+                "cdr": patient.cdr_sum or 0.0,
+                "adas13": patient.adas_cog13,
+                "adcs_pacc": "not_available",
+                "ravlt_total": 45,  # Default value
+                "csf_abeta42": patient.csf_abeta42,
+                "csf_abeta42_abeta40_ratio": (patient.csf_abeta42 / patient.csf_abeta40) if patient.csf_abeta42 and patient.csf_abeta40 else "not_available",
+                "csf_ptau181": patient.csf_ptau181,
+                "csf_ttau": patient.csf_total_tau,
+                "pet_piB_centiloids": patient.amyloid_pet_suvr,
+                "mri_hippocampal_volume": (patient.hippocampus_volume_left + patient.hippocampus_volume_right) / 2 if patient.hippocampus_volume_left and patient.hippocampus_volume_right else "not_available",
+                "mri_ventricular_volume": "not_available"
+            },
+            "normative_refs": [
+                "ADNI_norms_IF>5_2020",
+                "DOI:10.1000/xyz123 (2021)"
+            ],
+            "stage_hint": "Stage1",
+            "question": "Estimate 5-year risk of progression to FDA Stage3 (MCI AD/Progressor)"
+        }
+        
+        task = f"""Analyze the following patient data and provide a JSON response following the unified schema:
+
+{json.dumps(input_data, indent=2)}
+
+Please provide your analysis in the exact JSON format specified in your system prompt."""
+        
+        result = await self.agents["clinician_gpt4o"].run(task=task)
+        clinician_gpt4o_response = result.messages[-1].content if result.messages else ""
+        print(f"Clinician GPT4o Agent says: {clinician_gpt4o_response[:200]}...")
+        
+        self.processing_results["clinician_gpt4o"] = clinician_gpt4o_response
+        return clinician_gpt4o_response
         
     async def _run_cox_agent(self, patient: PatientData) -> str:
         """Run the Cox agent"""

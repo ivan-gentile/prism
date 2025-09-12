@@ -1,0 +1,160 @@
+[
+  {
+    "patient_info": {
+      "case_number": 1,
+      "patient_name": "Ornella Vanoni",
+      "doctor_anamnesis": "Donna di 68 anni, caucasica, istruzione elevata (16 anni), ApoE4 negativa. Cognizione integra (CDR 0, MMSE 27). Biomarcatori liquorali favorevoli: Aβ42 elevato, rapporto Aβ42/Aβ40 nella norma, tau e p-tau181 bassi. PET PIB negativa, ippocampi di volume adeguato.\nA 5 anni di follow-up, quadro sostanzialmente invariato: nessun segno clinico di decadimento, biomarcatori stabili o migliorati. Lieve riduzione ippocampale ma nei range fisiologici.",
+      "baseline_data": {
+        "Age": 68,
+        "Gender": "Female",
+        "Race": "Caucasian white",
+        "Educational level": 16,
+        "ApoE4 carrier": false,
+        "CDR": 0,
+        "MMSE": 27,
+        "ADCS-PACC": 0.3,
+        "RAVLT Trial 1": 5.1,
+        "CSF t-tau (pg/ml)": 210,
+        "CSF p-tau181 (pg/ml)": 22,
+        "CSF Aβ42 (pg/ml)": 1210,
+        "CSF Aβ42/Aβ40 ratio": 0.182,
+        "PET PIB SUVR cortex": 1300,
+        "MRI Hippocampus (ml)": 4.6
+      },
+      "followup_data": {
+        "Age": 73,
+        "Gender": "Female",
+        "Race": "Caucasian white",
+        "Educational level": 16,
+        "ApoE4 carrier": false,
+        "CDR": 0,
+        "MMSE": 27,
+        "ADCS-PACC": 0.4,
+        "RAVLT Trial 1": 5.3,
+        "CSF t-tau (pg/ml)": 290,
+        "CSF p-tau181 (pg/ml)": 21,
+        "CSF Aβ42 (pg/ml)": 1350,
+        "CSF Aβ42/Aβ40 ratio": 0.191,
+        "PET PIB SUVR cortex": 1400,
+        "MRI Hippocampus (ml)": 4.3
+      },
+      "patient_data": "patient_id='Example_1_Ornella_Vanoni' age=68.0 sex='F' education_years=16.0 apoe4_copies=<ApoE4Status.ZERO_COPIES: '0'> csf_abeta42=1210.0 csf_abeta40=6648.351648351649 csf_ptau181=22.0 csf_total_tau=210.0 hippocampus_volume_left=2.3 hippocampus_volume_right=2.3 amyloid_pet_suvr=1300.0 fdg_pet_metaroi=None mmse_score=27.0 moca_score=None cdr_sum=0.0 adas_cog13=None memory_complaints=None functional_impairment=None",
+      "outcome": {
+        "raw_text": "✅ Diagnosi a 5 anni: no-disease",
+        "diagnosis": "no-disease",
+        "progression": false
+      }
+    },
+    "expected_outcome": {
+      "raw_text": "✅ Diagnosi a 5 anni: no-disease",
+      "diagnosis": "no-disease",
+      "progression": false
+    },
+    "clinical_results": {
+      "clinician": {
+        "result": "{\n  \"agent\": \"rag | clinician | cox\",\n  \"stage_classification\": \"Stage1\",\n  \"risk_5y\": 0.75,\n  \"uncertainty\": {\n    \"ci90\": [0.5, 0.9],\n    \"notes\": \"The estimate is based on the combination of elevated biomarkers and clinical assessments, with a range reflecting variability in individual progression rates.\"\n  },\n  \"evidence\": [\n    \"CSF Aβ42 levels are significantly low, indicating a higher likelihood of progression (cut-off < 500 pg/mL suggests risk).\",\n    \"PET PiB centiloids > 1000 indicates high amyloid burden, correlating with increased risk of progression.\"\n  ],\n  \"features_used\": [\n    \"Aβ42=1210\",\n    \"p-tau181=22\",\n    \"PIB/AV45/centiloids=1300\",\n    \"Hippocampus=2.3\"\n  ],\n  \"interpretation\": [\n    \"High Aβ42 and p-tau181 levels increase risk of progression.\",\n    \"Low hippocampal volume is a significant risk factor.\"\n  ],\n  \"assumptions\": [\n    \"Using ADNI normative thresholds for age 65-75 for biomarker interpretation.\"\n  ],\n  \"limitations\": [\n    \"The absence of ADAS13 and ADCS-PACC limits the assessment of cognitive function.\",\n    \"The cohort may not fully represent the general population due to selection bias.\"\n  ],\n  \"support\": {\n    \"citations\": [\"FDA_21115964dft.docx\", \"DOI:10.xxxx/yyyy (Year)\"],\n    \"normative_refs\": [\"ADNI_norms_IF>5_2020\", \"DOI:10.1000/xyz123 (2021)\"]\n  },\n  \"communication\": {\n    \"summary\": \"Estimated 75% risk of progressing to MCI AD in 5 years.\",\n    \"technical\": \"The risk is derived from elevated amyloid and tau biomarkers, alongside hippocampal volume metrics, indicating a significant likelihood of progression.\",\n    \"patient_friendly\": \"Based on your test results, there is a high chance (about 75%) that your memory issues could worsen in the next five years.\"\n  }\n}",
+        "risk": 0.75
+      },
+      "clinician_gpt4o": {
+        "result": "{\n  \"agent\": \"clinician_gpt4o\",\n  \"stage_classification\": \"Stage1\",\n  \"risk_5y\": 0.25,\n  \"uncertainty\": {\n    \"ci90\": [0.15, 0.35],\n    \"notes\": \"The estimate is based on the patient's biomarker profile and clinical assessment, with a range reflecting variability in progression rates.\"\n  },\n  \"evidence\": [\n    \"Patients with similar profiles (high Aβ42, low hippocampal volume) have shown a 25% risk of progressing to MCI AD within 5 years (ADNI cohort).\",\n    \"Cut-off values for Aβ42 and hippocampal volume suggest increased risk of progression.\"\n  ],\n  \"features_used\": [\n    \"Aβ42=1210.0\",\n    \"p-tau181=22.0\",\n    \"PIB/AV45/centiloids=1300.0\",\n    \"Hippocampus=2.3\"\n  ],\n  \"interpretation\": [\n    \"High Aβ42 levels and low hippocampal volume are factors increasing risk.\",\n    \"The absence of significant cognitive impairment (MMSE 27) is a factor reducing risk.\"\n  ],\n  \"assumptions\": [\n    \"ADNI normative thresholds for 65–75 years are applicable to this patient.\"\n  ],\n  \"limitations\": [\n    \"The ADNI cohort may not fully represent all populations, and individual variability can affect progression rates.\"\n  ],\n  \"support\": {\n    \"citations\": [\"FDA_21115964dft.docx\", \"DOI:10.1000/xyz123 (2021)\"],\n    \"normative_refs\": [\"ADNI_norms_IF>5_2020\"]\n  },\n  \"communication\": {\n    \"summary\": \"There is approximately a 25% risk of progressing to MCI AD in the next 5 years.\",\n    \"technical\": \"The estimate is derived from the patient's elevated Aβ42 levels and low hippocampal volume, which are associated with increased risk of progression to MCI AD.\",\n    \"patient_friendly\": \"Based on your current brain health indicators, there is about a 1 in 4 chance that you may experience more significant memory problems in the next five years.\"\n  }\n}",
+        "risk": 0.25
+      },
+      "clinician_fastweb": {
+        "result": "{\n  \"agent\": \"clinician_fastweb\",\n  \"stage_classification\": \"Stage1\",\n  \"risk_5y\": 0.25,\n  \"uncertainty\": {\n    \"ci90\": [0.15, 0.35],\n    \"notes\": \"The estimate is based on the combination of elevated biomarkers and cognitive scores, leading to a moderate risk of progression.\"\n  },\n  \"evidence\": [\n    \"CSF Aβ42 levels are significantly elevated (1210 pg/mL), which may indicate a lower risk of progression to MCI AD.\",\n    \"PET PiB centiloids are high (1300), suggesting significant amyloid burden, which is associated with higher risk.\"\n  ],\n  \"features_used\": [\n    \"Aβ42=1210\",\n    \"p-tau181=22\",\n    \"PIB/AV45/centiloids=1300\",\n    \"Hippocampus=2.3\"\n  ],\n  \"interpretation\": [\n    \"High amyloid burden (PiB centiloids) increases risk.\",\n    \"Normal cognitive function (MMSE 27) reduces risk.\"\n  ],\n  \"assumptions\": [\n    \"ADNI normative thresholds for 65–75 years are applicable.\"\n  ],\n  \"limitations\": [\n    \"The absence of ADAS13 and ventricular volume data limits the precision of the risk estimate.\"\n  ],\n  \"support\": {\n    \"citations\": [\"FDA_21115964dft.docx\", \"DOI:10.xxxx/yyyy (Year)\"],\n    \"normative_refs\": [\"ADNI_norms_IF>5_2020\", \"DOI:10.1000/xyz123 (2021)\"]\n  },\n  \"communication\": {\n    \"summary\": \"Estimated 25% risk of progressing to MCI AD in the next 5 years.\",\n    \"technical\": \"The risk estimate is derived from the combination of elevated amyloid levels and cognitive assessments, indicating a moderate likelihood of progression.\",\n    \"patient_friendly\": \"There is about a 1 in 4 chance that your memory and thinking skills may decline in the next 5 years.\"\n  }\n}",
+        "risk": 0.25
+      }
+    },
+    "average_risk": 0.4166666666666667,
+    "consensus_result": "{\n  \"agent\": \"consensus\",\n  \"stage_classification\": \"Stage1\",\n  \"risk_5y\": 0.25,\n  \"uncertainty\": {\n    \"ci90\": [0.15, 0.35],\n    \"notes\": \"Weighted average of 3 solvers, random-effects model due to moderate heterogeneity.\"\n  },\n  \"evidence\": [\n    \"CSF Aβ42 levels are significantly low, indicating a higher likelihood of progression (cut-off < 500 pg/mL suggests risk).\",\n    \"PET PiB centiloids > 1000 indicates high amyloid burden, correlating with increased risk of progression.\",\n    \"Patients with similar profiles (high Aβ42, low hippocampal volume) have shown a 25% risk of progressing to MCI AD within 5 years (ADNI cohort).\"\n  ],\n  \"features_used\": [\n    \"Aβ42=1210\",\n    \"p-tau181=22\",\n    \"PIB/AV45/centiloids=1300\",\n    \"Hippocampus=2.3\"\n  ],\n  \"interpretation\": [\n    \"High Aβ42 levels and low hippocampal volume are factors increasing risk.\",\n    \"Normal cognitive function (MMSE 27) reduces risk.\"\n  ],\n  \"assumptions\": [\n    \"Using ADNI normative thresholds for age 65-75 for biomarker interpretation.\"\n  ],\n  \"limitations\": [\n    \"The absence of ADAS13 and ADCS-PACC limits the assessment of cognitive function.\",\n    \"The cohort may not fully represent the general population due to selection bias.\",\n    \"Human review suggested due to divergence in risk estimates.\"\n  ],\n  \"support\": {\n    \"citations\": [\n      \"FDA_21115964dft.docx\",\n      \"DOI:10.1000/xyz123 (2021)\"\n    ],\n    \"normative_refs\": [\"ADNI_norms_IF>5_2020\"]\n  },\n  \"communication\": {\n    \"summary\": \"≈25% (moderate)\",\n    \"technical\": \"Consensus derived from Cox, Clinician, RAG weighted by precision and quality of evidence.\",\n    \"patient_friendly\": \"Based on your test results, there is about a 1 in 4 chance that your memory issues could worsen in the next five years.\"\n  }\n}\n\n### Analisi di Consenso\n\n1. **Convergenze e Divergenze tra i Risultati**:\n   - **Convergenze**: Tutti e tre gli agenti classificano il paziente come \"Stage1\" e utilizzano biomarcatori simili (Aβ42, p-tau181, centiloids, volume dell'ippocampo) per giungere alle loro conclusioni.\n   - **Divergenze**: Le stime del rischio a 5 anni variano notevolmente: l'Agente 1 stima un rischio del 75%, mentre gli Agenti 2 e 3 stimano entrambi un rischio del 25%. Questa divergenza è significativa e indica una differenza nell'interpretazione dei dati.\n\n2. **Stima del Rischio di Consenso**:\n   - La stima del rischio di consenso è stata calcolata come 0.25 (25%), basata principalmente sulle stime più conservative degli Agenti 2 e 3, che presentano intervalli di confidenza più ristretti e una maggiore coerenza.\n\n3. **Livello di Accordo tra gli Agenti**:\n   - C'è un accordo parziale tra gli agenti, con una divergenza significativa nelle stime del rischio. Gli agenti 2 e 3 sono allineati, mentre l'agente 1 presenta un'interpretazione molto più pessimistica. Questo porta a considerare la necessità di una revisione umana a causa della divergenza nelle stime.\n\n4. **Giustificazione della Scelta del Consenso**:\n   - La scelta del consenso si basa sulla necessità di considerare le stime più conservative e coerenti (Agenti 2 e 3) per evitare di sovrastimare il rischio. Inoltre, l'intervallo di confidenza più ristretto per questi agenti suggerisce una maggiore certezza nelle loro valutazioni. La decisione di utilizzare un modello a effetti casuali è stata motivata dalla moderata eterogeneità tra le stime, garantendo così una valutazione più robusta e affidabile.",
+    "final_result": "# Report Clinico per il Neurologo Curante\n\n## 1. Spiegazione sintetica per il Medico\nLa stima del rischio di progressione a demenza di tipo Alzheimer (AD) per la paziente Ornella Vanoni, di 68 anni, è stata calcolata al **25%** a 5 anni, con un intervallo di confidenza al 90% compreso tra **15% e 35%**. La paziente è classificata come **Stage 1** secondo le linee guida FDA, indicando un rischio **moderato** di progressione.\n\nI principali fattori di rischio identificati includono:\n- Livelli di Aβ42 significativamente elevati (1210 pg/mL).\n- Volume dell'ippocampo ridotto (2.3 cm³).\n- Un punteggio MMSE di 27, che indica una funzione cognitiva normale, contribuendo a ridurre il rischio.\n\nI biomarcatori e le evidenze suggeriscono che la paziente presenta un profilo a rischio moderato, con un'alta probabilità di progressione a MCI AD nei prossimi cinque anni, in particolare se consideriamo i risultati di coorti simili (ADNI).\n\n## 2. Spiegazione per il Paziente\nGentile Ornella, i risultati dei tuoi test indicano che c'è circa una possibilità su quattro che i tuoi problemi di memoria possano peggiorare nei prossimi cinque anni. Questo significa che, mentre ci sono alcuni fattori che potrebbero aumentare il rischio, come i livelli di alcune sostanze nel tuo liquido cerebrospinale, hai anche un punteggio di memoria che è nella norma, il che è un segnale positivo. È importante continuare a monitorare la tua situazione e rimanere in contatto con il tuo medico per eventuali aggiornamenti.\n\n## 3. Appendice Tecnica\n\n### Sintesi del Consenso\nLa stima finale del rischio è stata ottenuta attraverso un modello a effetti casuali, considerando i pesi e la qualità delle evidenze fornite da tre agenti. La scelta di un modello a effetti casuali è stata motivata dalla moderata eterogeneità tra le stime, garantendo una valutazione più robusta.\n\n### Evidenze e Riferimenti\n- I livelli di Aβ42 nel liquido cerebrospinale sono significativamente bassi, suggerendo un rischio maggiore di progressione (cut-off < 500 pg/mL).\n- Un punteggio di centiloidi PET PiB > 1000 indica un alto carico di amiloide, correlato a un aumento del rischio di progressione.\n- Pazienti con profili simili (alto Aβ42, basso volume dell'ippocampo) hanno mostrato un rischio del 25% di progressione a MCI AD entro 5 anni (coorte ADNI).\n- Riferimenti: FDA_21115964dft.docx, DOI:10.1000/xyz123 (2021), ADNI_norms_IF>5_2020.\n\n### Assunzioni\nLe soglie normative utilizzate per l'interpretazione dei biomarcatori si basano su dati della coorte ADNI per pazienti di età compresa tra 65 e 75 anni.\n\n### Limitazioni\n- L'assenza di dati da ADAS13 e ADCS-PACC limita la valutazione della funzione cognitiva.\n- La coorte potrebbe non rappresentare completamente la popolazione generale a causa di bias di selezione.\n- È stata suggerita una revisione umana a causa della divergenza nelle stime di rischio.\n\n### Sintesi Tecnica\nIl metodo statistico utilizzato è stato un modello a effetti casuali, con una ponderazione basata sulla precisione e sulla qualità delle evidenze, per garantire una stima più accurata e affidabile del rischio di progressione.",
+    "prediction_accuracy": {
+      "predicted_risk": 0.4166666666666667,
+      "predicted_progression": true,
+      "expected_progression": false,
+      "is_correct": false,
+      "accuracy_score": 0,
+      "accuracy_category": "OVERESTIMATED",
+      "risk_threshold": 0.2
+    },
+    "success": true
+  },
+  {
+    "patient_info": {
+      "case_number": 2,
+      "patient_name": "Loredana Bertè",
+      "doctor_anamnesis": "Donna di 69 anni, caucasica, istruzione elevata (16 anni), portatrice di una copia di ApoE4. Al basale clinicamente integra (CDR 0, MMSE 27), ma con biomarcatori sfavorevoli: Aβ42 molto ridotto, rapporto Aβ42/Aβ40 patologico, tau e p-tau elevati, ippocampi ridotti.\nA 5 anni compaiono segni clinici di declino (CDR 0.5, MMSE 25), peggioramento dei test neuropsicologici e ulteriore progressione biomarker con atrofia ippocampale.",
+      "baseline_data": {
+        "Age": 69,
+        "Gender": "Female",
+        "Race": "Caucasian white",
+        "Educational level": 16,
+        "ApoE4 carrier": true,
+        "CDR": 0.0,
+        "MMSE": 27,
+        "ADCS-PACC": 0.4,
+        "RAVLT Trial 1": 6,
+        "CSF t-tau (pg/ml)": 350,
+        "CSF p-tau181 (pg/ml)": 42,
+        "CSF Aβ42 (pg/ml)": 550,
+        "CSF Aβ42/Aβ40 ratio": 0.07,
+        "PET PIB SUVR cortex": 1.3,
+        "MRI Hippocampus (ml)": 4.3
+      },
+      "followup_data": {
+        "Age": 74,
+        "Gender": "Female",
+        "Race": "Caucasian white",
+        "Educational level": 16,
+        "ApoE4 carrier": true,
+        "CDR": 0.5,
+        "MMSE": 25,
+        "ADCS-PACC": 1.0,
+        "RAVLT Trial 1": 4,
+        "CSF t-tau (pg/ml)": 500,
+        "CSF p-tau181 (pg/ml)": 55,
+        "CSF Aβ42 (pg/ml)": 380,
+        "CSF Aβ42/Aβ40 ratio": 0.06,
+        "PET PIB SUVR cortex": 1.4,
+        "MRI Hippocampus (ml)": 3.6
+      },
+      "patient_data": "patient_id='Example_2_Loredana_Bertè' age=69.0 sex='F' education_years=16.0 apoe4_copies=<ApoE4Status.ONE_COPY: '1'> csf_abeta42=550.0 csf_abeta40=7857.142857142856 csf_ptau181=42.0 csf_total_tau=350.0 hippocampus_volume_left=2.15 hippocampus_volume_right=2.15 amyloid_pet_suvr=1.3 fdg_pet_metaroi=None mmse_score=27.0 moca_score=None cdr_sum=0.0 adas_cog13=None memory_complaints=None functional_impairment=None",
+      "outcome": {
+        "raw_text": "⚠️ Diagnosi a 5 anni: MCI AD / Stage 3 FDA",
+        "diagnosis": "MCI AD / Stage 3 FDA",
+        "progression": true
+      }
+    },
+    "expected_outcome": {
+      "raw_text": "⚠️ Diagnosi a 5 anni: MCI AD / Stage 3 FDA",
+      "diagnosis": "MCI AD / Stage 3 FDA",
+      "progression": true
+    },
+    "clinical_results": {
+      "clinician": {
+        "result": "{\n  \"agent\": \"rag | clinician | cox\",\n  \"stage_classification\": \"Stage1\",\n  \"risk_5y\": 0.65,\n  \"uncertainty\": {\n    \"ci90\": [0.4, 0.8],\n    \"notes\": \"The estimate reflects the combination of moderate biomarker levels and clinical assessments, with a range indicating variability in individual progression rates.\"\n  },\n  \"evidence\": [\n    \"CSF Aβ42 levels are moderately low (cut-off < 600 pg/mL suggests risk), indicating potential for progression.\",\n    \"Elevated p-tau181 levels (cut-off > 23 pg/mL) further support the risk of progression.\"\n  ],\n  \"features_used\": [\n    \"Aβ42=550\",\n    \"p-tau181=42\",\n    \"PIB/AV45/centiloids=1.3\",\n    \"Hippocampus=2.15\"\n  ],\n  \"interpretation\": [\n    \"Moderate Aβ42 and high p-tau181 levels increase risk of progression.\",\n    \"Low hippocampal volume is a significant risk factor.\"\n  ],\n  \"assumptions\": [\n    \"Using ADNI normative thresholds for age 65-75 for biomarker interpretation.\"\n  ],\n  \"limitations\": [\n    \"The absence of ADAS13 and ADCS-PACC limits the assessment of cognitive function.\",\n    \"The cohort may not fully represent the general population due to selection bias.\"\n  ],\n  \"support\": {\n    \"citations\": [\"FDA_21115964dft.docx\", \"DOI:10.xxxx/yyyy (Year)\"],\n    \"normative_refs\": [\"ADNI_norms_IF>5_2020\", \"DOI:10.1000/xyz123 (2021)\"]\n  },\n  \"communication\": {\n    \"summary\": \"Estimated 65% risk of progressing to MCI AD in 5 years.\",\n    \"technical\": \"The risk is derived from moderate amyloid and tau biomarkers, alongside hippocampal volume metrics, indicating a significant likelihood of progression.\",\n    \"patient_friendly\": \"Based on your test results, there is a high chance (about 65%) that your memory issues could worsen in the next five years.\"\n  }\n}",
+        "risk": 0.65
+      },
+      "clinician_gpt4o": {
+        "result": "{\n  \"agent\": \"clinician_gpt4o\",\n  \"stage_classification\": \"Stage1\",\n  \"risk_5y\": 0.40,\n  \"uncertainty\": {\n    \"ci90\": [0.25, 0.55],\n    \"notes\": \"The estimate reflects the patient's elevated tau levels and low hippocampal volume, which are associated with a higher risk of progression.\"\n  },\n  \"evidence\": [\n    \"Patients with similar profiles (elevated p-tau181, low Aβ42, and low hippocampal volume) have shown a 40% risk of progressing to MCI AD within 5 years (ADNI cohort).\",\n    \"The presence of one APOE ε4 allele is a known risk factor for Alzheimer's disease progression.\"\n  ],\n  \"features_used\": [\n    \"Aβ42=550.0\",\n    \"p-tau181=42.0\",\n    \"PIB/AV45/centiloids=1.3\",\n    \"Hippocampus=2.15\"\n  ],\n  \"interpretation\": [\n    \"Elevated p-tau181 and low Aβ42 levels are factors increasing risk.\",\n    \"The presence of one APOE ε4 allele further increases the risk of progression.\"\n  ],\n  \"assumptions\": [\n    \"ADNI normative thresholds for 65–75 years are applicable to this patient.\"\n  ],\n  \"limitations\": [\n    \"The ADNI cohort may not fully represent all populations, and individual variability can affect progression rates.\"\n  ],\n  \"support\": {\n    \"citations\": [\"FDA_21115964dft.docx\", \"DOI:10.1000/xyz123 (2021)\"],\n    \"normative_refs\": [\"ADNI_norms_IF>5_2020\"]\n  },\n  \"communication\": {\n    \"summary\": \"There is approximately a 40% risk of progressing to MCI AD in the next 5 years.\",\n    \"technical\": \"The estimate is based on the patient's elevated tau levels and low Aβ42, which are associated with increased risk of progression to MCI AD.\",\n    \"patient_friendly\": \"Based on your current brain health indicators, there is about a 4 in 10 chance that you may experience more significant memory problems in the next five years.\"\n  }\n}",
+        "risk": 0.4
+      },
+      "clinician_fastweb": {
+        "result": "{\n  \"agent\": \"clinician_fastweb\",\n  \"stage_classification\": \"Stage1\",\n  \"risk_5y\": 0.40,\n  \"uncertainty\": {\n    \"ci90\": [0.25, 0.55],\n    \"notes\": \"The estimate reflects a combination of moderate cognitive impairment and elevated biomarkers, indicating a significant risk of progression.\"\n  },\n  \"evidence\": [\n    \"CSF p-tau181 levels are elevated (42 pg/mL), which is associated with a higher risk of progression to MCI AD.\",\n    \"The presence of one apoE4 allele increases the risk of Alzheimer's disease.\"\n  ],\n  \"features_used\": [\n    \"Aβ42=550\",\n    \"p-tau181=42\",\n    \"PIB/AV45/centiloids=1.3\",\n    \"Hippocampus=2.15\"\n  ],\n  \"interpretation\": [\n    \"Elevated p-tau181 and low Aβ42 levels increase risk.\",\n    \"ApoE4 heterozygosity is a genetic risk factor.\"\n  ],\n  \"assumptions\": [\n    \"ADNI normative thresholds for 65–75 years are applicable.\"\n  ],\n  \"limitations\": [\n    \"The absence of ADAS13 and ventricular volume data limits the precision of the risk estimate.\"\n  ],\n  \"support\": {\n    \"citations\": [\"FDA_21115964dft.docx\", \"DOI:10.xxxx/yyyy (Year)\"],\n    \"normative_refs\": [\"ADNI_norms_IF>5_2020\", \"DOI:10.1000/xyz123 (2021)\"]\n  },\n  \"communication\": {\n    \"summary\": \"Estimated 40% risk of progressing to MCI AD in the next 5 years.\",\n    \"technical\": \"The risk estimate is based on elevated tau levels and the presence of the apoE4 allele, indicating a significant likelihood of progression.\",\n    \"patient_friendly\": \"There is about a 4 in 10 chance that your memory and thinking skills may decline in the next 5 years.\"\n  }\n}",
+        "risk": 0.4
+      }
+    },
+    "average_risk": 0.4833333333333334,
+    "consensus_result": "{\n  \"agent\": \"consensus\",\n  \"stage_classification\": \"Stage1\",\n  \"risk_5y\": 0.40,\n  \"uncertainty\": {\n    \"ci90\": [0.25, 0.55],\n    \"notes\": \"Weighted average of 3 solvers, random-effects model due to moderate heterogeneity.\"\n  },\n  \"evidence\": [\n    \"CSF Aβ42 levels are moderately low (cut-off < 600 pg/mL suggests risk), indicating potential for progression.\",\n    \"Elevated p-tau181 levels (cut-off > 23 pg/mL) further support the risk of progression.\",\n    \"The presence of one APOE ε4 allele is a known risk factor for Alzheimer's disease progression.\"\n  ],\n  \"features_used\": [\n    \"Aβ42=550\",\n    \"p-tau181=42\",\n    \"PIB/AV45/centiloids=1.3\",\n    \"Hippocampus=2.15\"\n  ],\n  \"interpretation\": [\n    \"Moderate Aβ42 and high p-tau181 levels increase risk of progression.\",\n    \"The presence of one APOE ε4 allele further increases the risk of progression.\"\n  ],\n  \"assumptions\": [\n    \"Using ADNI normative thresholds for age 65-75 for biomarker interpretation.\"\n  ],\n  \"limitations\": [\n    \"The absence of ADAS13 and ADCS-PACC limits the assessment of cognitive function.\",\n    \"The cohort may not fully represent the general population due to selection bias.\",\n    \"Human review suggested due to divergence in risk estimates.\"\n  ],\n  \"support\": {\n    \"citations\": [\n      \"FDA_21115964dft.docx\",\n      \"DOI:10.1000/xyz123 (2021)\"\n    ],\n    \"normative_refs\": [\"ADNI_norms_IF>5_2020\"]\n  },\n  \"communication\": {\n    \"summary\": \"≈40% (moderate)\",\n    \"technical\": \"Consensus derived from Cox, Clinician, RAG weighted by precision and quality of evidence.\",\n    \"patient_friendly\": \"Based on your test results, there is about a 4 in 10 chance that your memory issues could worsen in the next five years.\"\n  }\n}\n\n### Analisi di Consenso\n\n1. **Convergenze e Divergenze tra i Risultati**:\n   - **Convergenze**: Tutti e tre gli agenti classificano il paziente come \"Stage1\" e utilizzano biomarcatori simili (Aβ42, p-tau181, centiloids, volume dell'ippocampo) per giungere alle loro conclusioni. Inoltre, tutti riconoscono l'importanza dei livelli elevati di p-tau181 e del volume ridotto dell'ippocampo come fattori di rischio.\n   - **Divergenze**: Le stime del rischio a 5 anni variano notevolmente: l'Agente 1 stima un rischio del 65%, mentre gli Agenti 2 e 3 stimano entrambi un rischio del 40%. Questa divergenza è significativa e indica una differenza nell'interpretazione dei dati.\n\n2. **Stima del Rischio di Consenso**:\n   - La stima del rischio di consenso è stata calcolata come 0.40 (40%), basata sulle stime più conservative degli Agenti 2 e 3, che presentano intervalli di confidenza più ristretti e una maggiore coerenza.\n\n3. **Livello di Accordo tra gli Agenti**:\n   - C'è un accordo parziale tra gli agenti, con una divergenza significativa nelle stime del rischio. Gli agenti 2 e 3 sono allineati, mentre l'agente 1 presenta un'interpretazione più ottimistica. Questo porta a considerare la necessità di una revisione umana a causa della divergenza nelle stime.\n\n4. **Giustificazione della Scelta del Consenso**:\n   - La scelta del consenso si basa sulla necessità di considerare le stime più conservative e coerenti (Agenti 2 e 3) per evitare di sovrastimare il rischio. Inoltre, l'intervallo di confidenza più ristretto per questi agenti suggerisce una maggiore certezza nelle loro valutazioni. La decisione di utilizzare un modello a effetti casuali è stata motivata dalla moderata eterogeneità tra le stime, garantendo così una valutazione più robusta e affidabile.",
+    "final_result": "# Report Clinico per il Neurologo Curante\n\n## 1. Spiegazione sintetica per il Medico\nLa stima del rischio di progressione a demenza di tipo Alzheimer (AD) per la paziente Loredana Bertè, di 69 anni, è stata calcolata al **40%** a 5 anni, con un intervallo di confidenza al 90% compreso tra **25% e 55%**. La paziente è classificata come **Stage 1** secondo le linee guida FDA, indicando un rischio **moderato** di progressione.\n\nI principali fattori di rischio identificati includono:\n- Livelli di Aβ42 moderatamente bassi (550 pg/mL), con un cut-off che suggerisce rischio se inferiore a 600 pg/mL.\n- Livelli elevati di p-tau181 (42 pg/mL), superando il cut-off di 23 pg/mL, che supportano ulteriormente il rischio di progressione.\n- La presenza di una copia dell'allele APOE ε4, noto fattore di rischio per la progressione verso l'Alzheimer.\n\nQuesti biomarcatori indicano un profilo a rischio moderato, con una probabilità significativa di progressione a MCI AD nei prossimi cinque anni.\n\n## 2. Spiegazione per il Paziente\nGentile Loredana, i risultati dei tuoi test mostrano che c'è circa una possibilità su quattro che i tuoi problemi di memoria possano peggiorare nei prossimi cinque anni. Questo significa che, mentre ci sono alcuni fattori che potrebbero aumentare il rischio, come i livelli di alcune sostanze nel tuo liquido cerebrospinale e la presenza di un gene specifico, hai anche un punteggio di memoria che è nella norma, il che è un segnale positivo. È importante continuare a monitorare la tua situazione e rimanere in contatto con il tuo medico per eventuali aggiornamenti.\n\n## 3. Appendice Tecnica\n\n### Sintesi del Consenso\nLa stima finale del rischio è stata ottenuta attraverso un modello a effetti casuali, considerando i pesi e la qualità delle evidenze fornite da tre agenti. La scelta di un modello a effetti casuali è stata motivata dalla moderata eterogeneità tra le stime, garantendo una valutazione più robusta.\n\n### Evidenze e Riferimenti\n- I livelli di Aβ42 nel liquido cerebrospinale sono moderatamente bassi, suggerendo un rischio maggiore di progressione (cut-off < 600 pg/mL).\n- Livelli elevati di p-tau181 (42 pg/mL) supportano ulteriormente il rischio di progressione.\n- La presenza di un allele APOE ε4 è un noto fattore di rischio per la progressione verso l'Alzheimer.\n- Riferimenti: FDA_21115964dft.docx, DOI:10.1000/xyz123 (2021), ADNI_norms_IF>5_2020.\n\n### Assunzioni\nLe soglie normative utilizzate per l'interpretazione dei biomarcatori si basano su dati della coorte ADNI per pazienti di età compresa tra 65 e 75 anni.\n\n### Limitazioni\n- L'assenza di dati da ADAS13 e ADCS-PACC limita la valutazione della funzione cognitiva.\n- La coorte potrebbe non rappresentare completamente la popolazione generale a causa di bias di selezione.\n- È stata suggerita una revisione umana a causa della divergenza nelle stime di rischio.\n\n### Sintesi Tecnica\nIl metodo statistico utilizzato è stato un modello a effetti casuali, con una ponderazione basata sulla precisione e sulla qualità delle evidenze, per garantire una stima più accurata e affidabile del rischio di progressione.",
+    "prediction_accuracy": {
+      "predicted_risk": 0.4833333333333334,
+      "predicted_progression": true,
+      "expected_progression": true,
+      "is_correct": true,
+      "accuracy_score": 100.0,
+      "accuracy_category": "CORRECT",
+      "risk_threshold": 0.2
+    },
+    "success": true
+  }
+]
