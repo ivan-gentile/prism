@@ -74,15 +74,28 @@ pip install -r requirements.txt
 
 ### Running the System
 
+There are two ways to run the system:
+
+#### 1. Core System (Command Line Interface)
 Test with sample patients:
 ```bash
-python prism_ad/test_prism_system.py
+python prism_ad/demo_new_flow.py
 ```
 
-Choose from:
-1. Single patient test (MCI case)
-2. Multiple patients comparison
-3. Quick validation test
+#### 2. Web Interface (Recommended)
+1. First, create a `.env` file in the project root with your OpenAI API key:
+```
+OPENAI_API_KEY=your_api_key_here
+```
+
+2. Run the web server:
+```bash
+python run_server.py
+```
+
+3. Access the system:
+   - API documentation: http://127.0.0.1:8000/docs
+   - Web interface: Open `infra/frontend/index.html` in your browser
 
 ## 📊 Sample Output
 
