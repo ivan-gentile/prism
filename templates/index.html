@@ -1,0 +1,2147 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PRISM-AD | Sistema di Analisi Rischio Alzheimer</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .main-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .card-header {
+            background: linear-gradient(90deg, #4CAF50, #45a049);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .card-body {
+            padding: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .char-counter {
+            font-size: 0.85em;
+            color: #999;
+            font-weight: normal;
+        }
+
+        .textarea-info {
+            margin-top: 8px;
+            text-align: right;
+        }
+
+        .textarea-info small {
+            color: #666;
+            font-size: 0.8em;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 400px;
+            max-height: 80vh;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            resize: vertical;
+            transition: border-color 0.3s ease;
+            overflow-y: auto;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+
+        .analyze-btn {
+            background: linear-gradient(90deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 0 auto;
+        }
+
+        .analyze-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .analyze-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .control-btn {
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .new-patient-btn {
+            background: linear-gradient(90deg, #FF9800, #F57C00);
+            color: white;
+        }
+
+        .new-patient-btn:hover {
+            background: linear-gradient(90deg, #F57C00, #E65100);
+            transform: translateY(-2px);
+        }
+
+        .example-btn {
+            background: linear-gradient(90deg, #2196F3, #1976D2);
+            color: white;
+        }
+
+        .example-btn:hover {
+            background: linear-gradient(90deg, #1976D2, #1565C0);
+            transform: translateY(-2px);
+        }
+
+        .clear-cache-btn {
+            background: transparent;
+            color: white;
+            font-size: 18px;
+            padding: 8px 12px;
+            min-width: auto;
+            border: 2px solid #FF8A65;
+            border-radius: 50%;
+        }
+
+        .clear-cache-btn:hover {
+            background: rgba(255, 138, 101, 0.2);
+            border-color: #FF5722;
+            transform: translateY(-2px);
+        }
+
+        .clear-cache-btn:active {
+            background: rgba(255, 138, 101, 0.4);
+            transform: translateY(0);
+        }
+
+        .voice-btn {
+            background: linear-gradient(90deg, #E91E63, #C2185B);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-right: 10px;
+        }
+
+        .voice-btn:hover {
+            background: linear-gradient(90deg, #C2185B, #AD1457);
+            transform: translateY(-2px);
+        }
+
+        .voice-btn.recording {
+            background: linear-gradient(90deg, #f44336, #d32f2f);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(244, 67, 54, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0); }
+        }
+
+        .voice-status {
+            font-size: 12px;
+            color: #666;
+            font-style: italic;
+        }
+
+        .voice-controls {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        @media (max-width: 768px) {
+            .button-group {
+                flex-direction: column !important;
+                align-items: center;
+            }
+            
+            .control-btn {
+                width: 100%;
+                max-width: 280px;
+                justify-content: center;
+            }
+
+            .voice-controls {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+        }
+
+        .loading {
+            display: none;
+            padding: 30px;
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            margin: 20px 0;
+        }
+
+        .progress-container {
+            text-align: center;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .progress-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .progress-header i {
+            font-size: 2.5em;
+            color: #4CAF50;
+            animation: pulse 2s infinite;
+        }
+
+        .progress-header h3 {
+            font-size: 1.4em;
+            color: #2c3e50;
+            margin: 0;
+            font-weight: 600;
+        }
+
+        .progress-description {
+            font-size: 1.1em;
+            color: #666;
+            margin-bottom: 15px;
+            opacity: 0.9;
+        }
+
+        .progress-details {
+            font-size: 0.95em;
+            color: #888;
+            margin-bottom: 20px;
+            min-height: 20px;
+            font-style: italic;
+            opacity: 0;
+            animation: fadeInOut 3s infinite;
+        }
+
+        .progress-bar-container {
+            background: #e9ecef;
+            height: 8px;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 15px;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #45a049);
+            border-radius: 10px;
+            width: 0%;
+            transition: width 0.8s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        .progress-time {
+            font-size: 0.9em;
+            color: #999;
+            margin-top: 10px;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0; }
+            50% { opacity: 1; }
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .result-section {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .result-card {
+            background: #f8f9fa;
+            border-left: 5px solid #4CAF50;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .result-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            color: #2c3e50;
+            justify-content: space-between;
+        }
+        
+        .download-btn {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            box-shadow: 0 2px 4px rgba(231, 76, 60, 0.3);
+        }
+        
+        .download-btn:hover {
+            background: linear-gradient(135deg, #c0392b, #a93226);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(231, 76, 60, 0.4);
+        }
+        
+        .download-btn:active {
+            transform: translateY(0);
+        }
+
+        .result-content {
+            line-height: 1.6;
+            white-space: normal;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #333;
+            background-color: #ffffff;
+            padding: 2em;
+            border-radius: 12px;
+            border: 1px solid #e0e0e0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        /* Stili specifici per il report medico */
+        .result-content h1 {
+            color: #1565c0 !important;
+            border-bottom: 3px solid #1565c0 !important;
+            margin-top: 0 !important;
+            font-size: 1.6em !important;
+            font-weight: bold !important;
+            padding-bottom: 0.3em !important;
+        }
+        
+        .result-content h2 {
+            background-color: #f8f9fa !important;
+            border-left: 4px solid #2e7d32 !important;
+            margin: 1.5em 0 0.8em 0 !important;
+            padding: 0.4em 0.8em !important;
+            font-size: 1.3em !important;
+            color: #2e7d32 !important;
+        }
+        
+        .result-content h3 {
+            color: #424242 !important;
+            margin: 1.2em 0 0.6em 0 !important;
+            font-size: 1.1em !important;
+            font-weight: bold !important;
+        }
+        
+        .result-content strong {
+            font-weight: 600 !important;
+            color: #333 !important;
+        }
+        
+        .result-content hr {
+            margin: 2em 0 !important;
+            border: none !important;
+            border-top: 2px solid #e0e0e0 !important;
+        }
+        
+        .result-content div {
+            margin: 0.6em 0 !important;
+            line-height: 1.4 !important;
+        }
+        
+        .result-content ul {
+            margin: 1em 0 !important;
+            padding-left: 1.5em !important;
+            list-style-type: none !important;
+        }
+        
+        .result-content li {
+            margin: 0.5em 0 !important;
+            line-height: 1.5 !important;
+            position: relative !important;
+            padding-left: 1em !important;
+        }
+        
+        .result-content li::before {
+            content: "•" !important;
+            color: #1976d2 !important;
+            font-weight: bold !important;
+            position: absolute !important;
+            left: 0 !important;
+        }
+        
+        .result-content p {
+            margin: 1em 0 !important;
+            line-height: 1.6 !important;
+            text-align: justify !important;
+        }
+        
+        .result-content em {
+            color: #666 !important;
+            font-style: italic !important;
+        }
+
+        .followup-section {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #eee;
+        }
+
+        .followup-input {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .followup-input input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .followup-btn {
+            background: #2196F3;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .followup-btn:hover {
+            background: #1976D2;
+        }
+
+        .followup-history {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .followup-item {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .followup-question {
+            font-weight: 600;
+            color: #2196F3;
+            margin-bottom: 8px;
+            padding: 8px;
+            background: #e3f2fd;
+            border-radius: 8px;
+            border-left: 4px solid #2196F3;
+        }
+
+        .followup-answer {
+            color: #555;
+            line-height: 1.5;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #4CAF50;
+            margin-top: 8px;
+        }
+
+        .gpt4o-badge {
+            background: linear-gradient(90deg, #4CAF50, #45a049);
+            color: white;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.7em;
+            margin-left: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .timestamp {
+            font-size: 0.85em;
+            color: #999;
+            margin-top: 8px;
+        }
+
+        .error {
+            background: #ffebee;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 5px solid #f44336;
+            margin: 20px 0;
+        }
+
+        .success {
+            background: #e8f5e8;
+            color: #2e7d32;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 5px solid #4caf50;
+            margin: 20px 0;
+        }
+
+        .clinical-summary {
+            background: #e3f2fd;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .risk-estimates {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .risk-item {
+            background: white;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .risk-item.active {
+            background: #f8f9fa;
+            border: 1px solid #e3f2fd;
+        }
+
+        .risk-item.inactive {
+            background: #fafafa;
+            border: 1px solid #eeeeee;
+            opacity: 0.7;
+        }
+
+        .risk-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+
+        .risk-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #2196F3;
+            margin-bottom: 4px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .card-body {
+                padding: 20px;
+            }
+
+            .followup-input {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1><i class="fas fa-brain"></i> PRISM-AD</h1>
+            <p>Sistema Avanzato di Analisi del Rischio di Progressione Alzheimer</p>
+        </header>
+
+        <div class="main-card">
+            <div class="card-header">
+                <h2><i class="fas fa-stethoscope"></i> Analisi Anamnesi Paziente</h2>
+            </div>
+            <div class="card-body">
+                <form id="analysisForm">
+                    <div class="form-group">
+                        <label for="anamnesis">
+                            <i class="fas fa-file-medical"></i> Anamnesi del Dottore
+                            <span class="char-counter" id="charCounter">0 caratteri</span>
+                        </label>
+                        <div class="voice-controls" style="margin-bottom: 10px;">
+                            <button type="button" class="voice-btn" id="voiceBtn">
+                                <i class="fas fa-microphone"></i>
+                                <span id="voiceBtnText">Inizia Dettatura</span>
+                            </button>
+                            <span class="voice-status" id="voiceStatus"></span>
+                        </div>
+                        <textarea 
+                            id="anamnesis" 
+                            name="anamnesis" 
+                            placeholder="Inserisci qui l'anamnesi completa e dettagliata del paziente.
+
+Includi tutti i dettagli disponibili:
+• Dati demografici (età, sesso, istruzione, ApoE4)
+• Valutazione cognitiva (MMSE, CDR, MoCA, ADAS-Cog, ADCS-PACC, RAVLT)
+• Biomarcatori liquorali (tau totale, p-tau181, Aβ42, rapporti Aβ42/Aβ40)
+• Imaging cerebrale (PET PIB/AV45 SUVR, volumi ippocampali, atrofia)
+• Follow-up longitudinale (cambiamenti nel tempo)
+• Anamnesi familiare e fattori di rischio
+• Sintomi clinici e funzionali attuali
+
+Spazio disponibile: illimitato per anamnesi dettagliate..."
+                            required
+                        ></textarea>
+                        <div class="textarea-info">
+                            <small><i class="fas fa-info-circle"></i> Usa Ctrl+A per selezionare tutto • Supporta anamnesi molto lunghe e dettagliate</small>
+                        </div>
+                    </div>
+                    
+                    <div class="button-group" style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-bottom: 20px;">
+                        <button type="button" class="control-btn new-patient-btn" id="newPatientBtn">
+                            <i class="fas fa-plus-circle"></i>
+                            Nuovo Paziente
+                        </button>
+                        <button type="button" class="control-btn example-btn" id="example1Btn">
+                            <i class="fas fa-file-medical"></i>
+                            Esempio 1 (Basso Rischio)
+                        </button>
+                        <button type="button" class="control-btn example-btn" id="example2Btn">
+                            <i class="fas fa-file-medical-alt"></i>
+                            Esempio 2 (Alto Rischio)
+                        </button>
+                        <button type="button" class="control-btn clear-cache-btn" id="clearCacheBtn" title="Cancella cache analisi">
+                            🟠
+                        </button>
+                    </div>
+                    
+                    <button type="submit" class="analyze-btn" id="analyzeBtn">
+                        <i class="fas fa-microscope"></i>
+                        Analizza Paziente
+                    </button>
+                </form>
+
+                <div class="loading" id="loadingDiv">
+                    <div class="progress-container">
+                        <div class="progress-header">
+                            <i class="fas fa-brain" id="progressIcon"></i>
+                            <h3 id="progressTitle">Analisi PRISM-AD</h3>
+                        </div>
+                        <div class="progress-description" id="progressDescription">
+                            Avvio analisi multi-agente...
+                        </div>
+                        <div class="progress-details" id="progressDetails">
+                            
+                        </div>
+                        <div class="progress-bar-container">
+                            <div class="progress-bar" id="progressBar"></div>
+                        </div>
+                        <div class="progress-time" id="progressTime">
+                            Tempo stimato: 2-3 minuti
+                        </div>
+                    </div>
+                </div>
+
+                <div class="result-section" id="resultSection">
+                    <div class="clinical-summary" id="clinicalSummary" style="display: none;">
+                        <h3><i class="fas fa-chart-line"></i> Analisi Multi-Agente PRISM-AD</h3>
+                        <div id="summaryContent"></div>
+                    </div>
+
+                    <div class="result-card">
+                        <div class="result-header">
+                            <i class="fas fa-file-medical-alt"></i>
+                            <h3>Report Medico Finale</h3>
+                            <span class="timestamp" id="resultTimestamp"></span>
+                            <button class="download-btn" id="downloadPdfBtn" onclick="downloadReportAsPDF()" style="display: none;">
+                                <i class="fas fa-download"></i> Scarica PDF
+                            </button>
+                        </div>
+                        <div class="result-content" id="resultContent"></div>
+                    </div>
+
+                    <div class="followup-section">
+                        <h3><i class="fas fa-comments"></i> Conversazione Clinica (GPT-4o)</h3>
+                        <p style="color: #666; font-size: 0.9em; margin-bottom: 15px;">
+                            <i class="fas fa-robot"></i> Powered by GPT-4o per conversazioni cliniche avanzate
+                        </p>
+                        <div class="followup-input">
+                            <input 
+                                type="text" 
+                                id="followupQuestion" 
+                                placeholder="Fai una domanda specifica sul caso, chiedi chiarimenti, o discuti opzioni terapeutiche..."
+                            >
+                            <button type="button" class="followup-btn" id="followupBtn">
+                                <i class="fas fa-paper-plane"></i> Invia
+                            </button>
+                        </div>
+                        <div class="followup-history" id="followupHistory"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- jsPDF library for PDF generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
+    <script>
+        let currentSessionId = null;
+        let mediaRecorder = null;
+        let audioChunks = [];
+        let isRecording = false;
+
+        // Elements
+        const analysisForm = document.getElementById('analysisForm');
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        const loadingDiv = document.getElementById('loadingDiv');
+        const resultSection = document.getElementById('resultSection');
+        const clinicalSummary = document.getElementById('clinicalSummary');
+        const summaryContent = document.getElementById('summaryContent');
+        const resultContent = document.getElementById('resultContent');
+        const resultTimestamp = document.getElementById('resultTimestamp');
+        const followupBtn = document.getElementById('followupBtn');
+        const followupQuestion = document.getElementById('followupQuestion');
+        const followupHistory = document.getElementById('followupHistory');
+        const voiceBtn = document.getElementById('voiceBtn');
+        const voiceBtnText = document.getElementById('voiceBtnText');
+        const voiceStatus = document.getElementById('voiceStatus');
+
+        // Main analysis form
+        let progressEventSource = null;
+        let currentProgress = 0;
+        let analysisStartTime = null;
+
+        // Sistema di messaggi dinamici per rendere il progresso più umano
+        const dynamicMessages = {
+            init: [
+                "🔧 Inizializzazione sistema PRISM-AD...",
+                "⚙️ Caricamento moduli di analisi...",
+                "🧠 Preparazione agenti clinici...",
+                "📊 Configurazione database biomarcatori..."
+            ],
+            data_validation: [
+                "📋 Estrazione dati strutturati dall'anamnesi...",
+                "🔍 Analisi parametri demografici...",
+                "📈 Validazione punteggi cognitivi...",
+                "🧬 Verifica status genetico ApoE4..."
+            ],
+            evidence_search: [
+                "🔎 Ricerca evidenze scientifiche...",
+                "📚 Consultazione database clinici...",
+                "🧪 Analisi biomarcatori liquorali...",
+                "🖼️ Elaborazione dati di imaging..."
+            ],
+            clinical_analysis: [
+                "🤖 RAG Agent: analisi evidenze scientifiche...",
+                "🧠 GPT4o Agent: valutazione multimodale...",
+                "🌐 Fastweb Agent: approccio conservativo...",
+                "📊 Calcolo stime di rischio individuali..."
+            ],
+            consensus: [
+                "🤝 Analisi consenso tra agenti...",
+                "⚖️ Bilanciamento pesi algoritmici...",
+                "📈 Calcolo rischio finale integrato...",
+                "🎯 Validazione coerenza risultati..."
+            ],
+            report_generation: [
+                "📄 Generazione report medico finale...",
+                "📝 Formattazione raccomandazioni cliniche...",
+                "🔍 Controllo qualità documentazione...",
+                "✅ Finalizzazione analisi completa..."
+            ]
+        };
+
+        let messageIndex = 0;
+        let messageInterval = null;
+
+        function startDynamicMessages(phase) {
+            if (messageInterval) {
+                clearInterval(messageInterval);
+            }
+            
+            const messages = dynamicMessages[phase] || ["🔄 Elaborazione in corso..."];
+            messageIndex = 0;
+            
+            // Mostra primo messaggio immediatamente
+            updateProgressDetails(messages[0]);
+            
+            // Cambia messaggio ogni 2-4 secondi
+            messageInterval = setInterval(() => {
+                messageIndex = (messageIndex + 1) % messages.length;
+                updateProgressDetails(messages[messageIndex]);
+            }, Math.random() * 2000 + 2000); // 2-4 secondi casuali
+        }
+
+        function stopDynamicMessages() {
+            if (messageInterval) {
+                clearInterval(messageInterval);
+                messageInterval = null;
+            }
+        }
+
+        function updateProgress(phaseData) {
+            const progressIcon = document.getElementById('progressIcon');
+            const progressTitle = document.getElementById('progressTitle');
+            const progressDescription = document.getElementById('progressDescription');
+            const progressDetails = document.getElementById('progressDetails');
+            const progressBar = document.getElementById('progressBar');
+            const progressTime = document.getElementById('progressTime');
+
+            // Aggiorna icona con animazione
+            if (phaseData.icon) {
+                progressIcon.className = `fas ${phaseData.icon}`;
+                // Aggiungi animazione pulse
+                progressIcon.style.animation = 'pulse 2s infinite';
+            }
+
+            // Aggiorna titolo e descrizione
+            if (phaseData.title) {
+                progressTitle.textContent = phaseData.title;
+            }
+            if (phaseData.description) {
+                progressDescription.textContent = phaseData.description;
+            }
+
+            // Avvia messaggi dinamici per questa fase
+            if (phaseData.phase) {
+                startDynamicMessages(phaseData.phase);
+            }
+
+            // Aggiorna barra di progresso con animazione fluida
+            const phaseProgress = {
+                'init': 10,
+                'data_validation': 20,
+                'evidence_search': 30,
+                'clinical_analysis': 50,
+                'biomarker_analysis': 65,
+                'risk_calculation': 75,
+                'consensus': 85,
+                'report_generation': 95,
+                'formatting': 100
+            };
+
+            const targetProgress = phaseProgress[phaseData.phase] || currentProgress;
+            
+            // Animazione fluida della barra di progresso
+            animateProgressBar(currentProgress, targetProgress);
+            currentProgress = targetProgress;
+
+            // Aggiorna tempo stimato con calcolo più realistico
+            if (analysisStartTime) {
+                const elapsed = (Date.now() - analysisStartTime) / 1000;
+                const estimated = (elapsed / currentProgress) * 100;
+                const remaining = Math.max(0, estimated - elapsed);
+                
+                if (remaining > 0) {
+                    progressTime.textContent = `Tempo rimanente: ${Math.ceil(remaining)}s`;
+                } else {
+                    progressTime.textContent = 'Completamento in corso...';
+                }
+            }
+        }
+
+        function animateProgressBar(from, to) {
+            const progressBar = document.getElementById('progressBar');
+            const duration = 800; // 800ms per animazione fluida
+            const startTime = Date.now();
+            
+            function animate() {
+                const elapsed = Date.now() - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                
+                // Usa easing function per animazione più naturale
+                const easeProgress = 1 - Math.pow(1 - progress, 3); // ease-out cubic
+                const currentWidth = from + (to - from) * easeProgress;
+                
+                progressBar.style.width = currentWidth + '%';
+                
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                }
+            }
+            
+            requestAnimationFrame(animate);
+        }
+
+        function updateProgressDetails(message) {
+            const progressDetails = document.getElementById('progressDetails');
+            progressDetails.textContent = message;
+            progressDetails.style.opacity = '1';
+            
+            // Non fare fade out per i messaggi di progresso dettagliati
+            // I messaggi rimangono visibili fino al prossimo aggiornamento
+        }
+
+        function startProgressTracking(sessionId) {
+            if (progressEventSource) {
+                progressEventSource.close();
+            }
+
+            analysisStartTime = Date.now();
+            currentProgress = 0;
+
+            // Timeout per fallback se il progress tracker non si connette
+            let connectionTimeout = setTimeout(() => {
+                console.log('Progress tracker connection timeout, starting fallback...');
+                if (progressEventSource) {
+                    progressEventSource.close();
+                    progressEventSource = null;
+                }
+                startFallbackProgress();
+            }, 3000); // 3 secondi di timeout
+
+            progressEventSource = new EventSource(`/progress/${sessionId}`);
+
+            progressEventSource.onopen = function() {
+                console.log('Progress stream connected');
+                clearTimeout(connectionTimeout); // Cancella il timeout se la connessione è riuscita
+            };
+
+            progressEventSource.onmessage = function(event) {
+                try {
+                    const data = JSON.parse(event.data);
+                    
+                    switch(data.type) {
+                        case 'analysis_started':
+                            updateProgress({
+                                phase: 'init',
+                                title: 'Inizializzazione PRISM-AD',
+                                description: 'Preparazione sistema di analisi',
+                                icon: 'fa-brain'
+                            });
+                            break;
+                            
+                        case 'phase_started':
+                            updateProgress({
+                                phase: data.data.phase,
+                                title: data.data.title,
+                                description: data.data.description,
+                                icon: data.data.icon
+                            });
+                            break;
+                            
+                        case 'progress_update':
+                            updateProgressDetails(data.data.message);
+                            break;
+                            
+                        case 'phase_completed':
+                            // Fase completata
+                            break;
+                            
+                        case 'analysis_completed':
+                            updateProgress({
+                                phase: 'complete',
+                                title: 'Analisi Completata',
+                                description: 'Report generato con successo',
+                                icon: 'fa-check-circle'
+                            });
+                            
+                            // Mostra i risultati se disponibili
+                            if (data.data && data.data.results) {
+                                displayResults(data.data.results);
+                            }
+                            
+                            setTimeout(() => {
+                                progressEventSource.close();
+                                progressEventSource = null;
+                            }, 2000);
+                            break;
+                            
+                        case 'error':
+                            showError(data.data.message);
+                            progressEventSource.close();
+                            progressEventSource = null;
+                            setLoading(false);
+                            break;
+                    }
+                } catch (e) {
+                    console.error('Error parsing progress data:', e);
+                }
+            };
+
+            progressEventSource.onerror = function(event) {
+                console.error('Progress stream error:', event);
+                progressEventSource.close();
+                progressEventSource = null;
+                
+                // Fallback: avvia progresso simulato se il tracker non funziona
+                console.log('Starting fallback progress simulation...');
+                startFallbackProgress();
+            };
+        }
+
+        // Sistema di fallback adattivo che si basa sul lavoro reale degli agenti
+        function startFallbackProgress() {
+            console.log('Starting adaptive fallback progress...');
+            
+            // Fase iniziale - sempre presente
+            updateProgress({
+                phase: 'init',
+                title: 'Inizializzazione PRISM-AD',
+                description: 'Preparazione sistema di analisi',
+                icon: 'fa-brain'
+            });
+            
+            // Avvia il polling per i risultati con messaggi adattivi
+            startAdaptiveResultPolling();
+        }
+
+        // Sistema di polling adattivo che si adatta al lavoro reale
+        function startAdaptiveResultPolling() {
+            if (pollingInterval) {
+                clearInterval(pollingInterval);
+            }
+            
+            pollingAttempts = 0;
+            const maxAttempts = 2; // Ridotto ulteriormente per evitare troppe richieste
+            let currentPhase = 'data_validation';
+            const phaseSequence = [
+                'data_validation',
+                'evidence_search', 
+                'clinical_analysis',
+                'consensus',
+                'report_generation'
+            ];
+            let phaseIndex = 0;
+            
+            console.log('Starting adaptive result polling...');
+            
+            pollingInterval = setInterval(async () => {
+                pollingAttempts++;
+                console.log(`Adaptive polling attempt ${pollingAttempts}/${maxAttempts}`);
+                
+                // Aggiorna la fase ogni tentativo per simulare progresso
+                if (pollingAttempts > 1 && phaseIndex < phaseSequence.length - 1) {
+                    phaseIndex++;
+                    currentPhase = phaseSequence[phaseIndex];
+                    
+                    // Aggiorna il progresso con la nuova fase
+                    const phaseData = getPhaseData(currentPhase);
+                    updateProgress(phaseData);
+                }
+                
+                // Messaggi dinamici per la fase corrente
+                const messages = dynamicMessages[currentPhase] || ["🔄 Elaborazione in corso..."];
+                const messageIndex = (pollingAttempts - 1) % messages.length;
+                updateProgressDetails(messages[messageIndex]);
+                
+                try {
+                    const success = await fetchAndDisplayResults();
+                    if (success) {
+                        clearInterval(pollingInterval);
+                        pollingInterval = null;
+                        return;
+                    }
+                } catch (error) {
+                    console.error('Adaptive polling error:', error);
+                }
+                
+                // Se abbiamo raggiunto il massimo numero di tentativi
+                if (pollingAttempts >= maxAttempts) {
+                    clearInterval(pollingInterval);
+                    pollingInterval = null;
+                    
+                    // Prova un ultimo tentativo prima di mostrare l'errore
+                    try {
+                        const finalSuccess = await fetchAndDisplayResults();
+                        if (!finalSuccess) {
+                            // Mostra un messaggio più specifico e suggerisci di ricaricare
+                            showMessage('Analisi completata ma risultati non disponibili. Prova a ricaricare la pagina e riprova.', 'error');
+                            setLoading(false);
+                            
+                            // Aggiungi un pulsante per ricaricare la pagina
+                            setTimeout(() => {
+                                if (confirm('L\'analisi è completata ma i risultati non sono disponibili. Vuoi ricaricare la pagina e riprovare?')) {
+                                    window.location.reload();
+                                }
+                            }, 2000);
+                        }
+                    } catch (error) {
+                        showMessage('Timeout nel recupero dei risultati. L\'analisi potrebbe essere completata ma i risultati non sono disponibili.', 'error');
+                        setLoading(false);
+                    }
+                }
+            }, 6000); // Aumentato a 6 secondi per ridurre ulteriormente le richieste
+        }
+
+        // Funzione per ottenere i dati della fase
+        function getPhaseData(phase) {
+            const phaseData = {
+                'data_validation': {
+                    phase: 'data_validation',
+                    title: 'Estrazione Dati',
+                    description: 'Analisi anamnesi e validazione parametri',
+                    icon: 'fa-clipboard-check'
+                },
+                'evidence_search': {
+                    phase: 'evidence_search',
+                    title: 'Ricerca Evidenze',
+                    description: 'Consultazione database scientifici',
+                    icon: 'fa-search'
+                },
+                'clinical_analysis': {
+                    phase: 'clinical_analysis',
+                    title: 'Analisi Clinica',
+                    description: 'Elaborazione agenti specializzati',
+                    icon: 'fa-microscope'
+                },
+                'consensus': {
+                    phase: 'consensus',
+                    title: 'Consenso Algoritmico',
+                    description: 'Integrazione risultati multi-agente',
+                    icon: 'fa-balance-scale'
+                },
+                'report_generation': {
+                    phase: 'report_generation',
+                    title: 'Generazione Report',
+                    description: 'Creazione documentazione finale',
+                    icon: 'fa-file-medical-alt'
+                }
+            };
+            
+            return phaseData[phase] || {
+                phase: 'processing',
+                title: 'Elaborazione',
+                description: 'Lavoro in corso...',
+                icon: 'fa-cog'
+            };
+        }
+
+        // Funzione per controllare se i risultati sono disponibili
+        async function checkForResults() {
+            if (!currentSessionId) return;
+            
+            try {
+                // Prova a recuperare i risultati direttamente dalla sessione
+                const response = await fetch(`/api/session/${currentSessionId}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    console.log('Session data available, attempting to fetch results...');
+                    
+                    // Prova a recuperare i risultati completi
+                    const success = await fetchAndDisplayResults();
+                    if (success) {
+                        return; // Se abbiamo successo, non avviare il polling
+                    }
+                } else {
+                    // Se la sessione non è disponibile, prova comunque a recuperare i risultati
+                    console.log('Session not found, trying to fetch results anyway...');
+                    const success = await fetchAndDisplayResults();
+                    if (success) {
+                        return; // Se abbiamo successo, non avviare il polling
+                    }
+                }
+            } catch (error) {
+                console.error('Error checking for results:', error);
+                // Prova comunque a recuperare i risultati
+                const success = await fetchAndDisplayResults();
+                if (success) {
+                    return; // Se abbiamo successo, non avviare il polling
+                }
+            }
+            
+            // Se non abbiamo avuto successo, avvia il polling adattivo
+            startAdaptiveResultPolling();
+        }
+
+        // Sistema di polling per recuperare i risultati (sostituito dal sistema adattivo)
+        let pollingInterval = null;
+        let pollingAttempts = 0;
+
+        // Funzione per recuperare e mostrare i risultati
+        async function fetchAndDisplayResults() {
+            if (!currentSessionId) return false;
+            
+            try {
+                // Prova a fare una richiesta per ottenere i risultati
+                const response = await fetch('/api/analyze', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ 
+                        anamnesis: document.getElementById('anamnesis').value.trim(),
+                        session_id: currentSessionId // Invia il session ID per recuperare i risultati
+                    })
+                });
+                
+                const result = await response.json();
+                
+                // Debug: stampa il risultato per capire cosa sta succedendo
+                console.log('API Response:', result);
+                console.log('Result structure:', {
+                    success: result.success,
+                    has_final_report: !!result.final_report,
+                    from_cache: result.from_cache,
+                    status: result.status,
+                    session_id: result.session_id
+                });
+                
+                // Controlla se abbiamo risultati completi
+                if (result.success && result.final_report) {
+                    console.log('Results found with final_report, displaying...');
+                    
+                    // Aggiorna il progresso per mostrare il completamento
+                    updateProgress({
+                        phase: 'complete',
+                        title: 'Analisi Completata',
+                        description: 'Report generato con successo',
+                        icon: 'fa-check-circle'
+                    });
+                    
+                    // Piccolo delay per mostrare il completamento
+                    setTimeout(() => {
+                        displayResults(result);
+                        
+                        if (result.from_cache) {
+                            showMessage('Analisi completata (risultato da cache)!', 'success');
+                        } else {
+                            showMessage('Analisi completata con successo!', 'success');
+                        }
+                    }, 1000);
+                    
+                    return true; // Successo
+                } else if (result.success && result.from_cache) {
+                    // Se il risultato è dalla cache ma non abbiamo final_report, prova a recuperarlo
+                    console.log('Results from cache but no final_report, trying to get full results...');
+                    
+                    // Prova a fare una richiesta specifica per i risultati completi
+                    try {
+                        const fullResponse = await fetch(`/api/session/${currentSessionId}`);
+                        const fullResult = await fullResponse.json();
+                        
+                        if (fullResult.success && fullResult.final_report) {
+                            console.log('Full results retrieved from cache, displaying...');
+                            
+                            // Aggiorna il progresso per mostrare il completamento
+                            updateProgress({
+                                phase: 'complete',
+                                title: 'Analisi Completata',
+                                description: 'Report generato con successo',
+                                icon: 'fa-check-circle'
+                            });
+                            
+                            // Piccolo delay per mostrare il completamento
+                            setTimeout(() => {
+                                displayResults(fullResult);
+                                showMessage('Analisi completata (risultato da cache)!', 'success');
+                            }, 1000);
+                            
+                            return true; // Successo
+                        }
+                    } catch (fullError) {
+                        console.error('Error fetching full results:', fullError);
+                    }
+                    
+                    // Se non riusciamo a recuperare i risultati completi, continua il polling
+                    console.log('Could not retrieve full results from cache, continuing to poll...');
+                    return false;
+                } else {
+                    console.log('Results not ready yet, continuing to poll...');
+                    return false; // Continua il polling
+                }
+            } catch (error) {
+                console.error('Error fetching results:', error);
+                return false; // Continua il polling
+            }
+        }
+
+        analysisForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const anamnesis = document.getElementById('anamnesis').value.trim();
+            if (!anamnesis) {
+                showError('Per favore inserisci l\'anamnesi del paziente');
+                return;
+            }
+
+            setLoading(true);
+            hideError();
+
+            try {
+                // Avvia analisi senza attendere il risultato
+                const analysisPromise = fetch('/api/analyze', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ anamnesis: anamnesis })
+                });
+
+                // Ottieni session ID dal primo response
+                const response = await analysisPromise;
+                const result = await response.json();
+
+                if (result.success && result.session_id) {
+                    currentSessionId = result.session_id;
+                    
+                    // Avvia tracking progresso
+                    startProgressTracking(result.session_id);
+                    
+                    // Se l'analisi è già completata (caso raro), mostra i risultati immediatamente
+                    if (result.status !== 'processing' && result.final_report) {
+                        displayResults(result);
+                    }
+                } else if (result.success && result.final_report) {
+                    // Se l'analisi è completata immediatamente (cache hit), mostra i risultati
+                    console.log('Analysis completed immediately, displaying results...');
+                    displayResults(result);
+                } else if (result.success && result.from_cache) {
+                    // Se l'analisi è dalla cache ma non abbiamo final_report, prova a recuperarlo
+                    console.log('Analysis from cache but no final_report, trying to get full results...');
+                    
+                    // Prova a fare una richiesta specifica per i risultati completi
+                    try {
+                        const fullResponse = await fetch(`/api/session/${result.session_id}`);
+                        const fullResult = await fullResponse.json();
+                        
+                        if (fullResult.success && fullResult.final_report) {
+                            console.log('Full results retrieved from cache, displaying...');
+                            displayResults(fullResult);
+                        } else {
+                            // Se non riusciamo a recuperare i risultati completi, avvia il polling
+                            console.log('Could not retrieve full results from cache, starting polling...');
+                            startProgressTracking(result.session_id);
+                        }
+                    } catch (fullError) {
+                        console.error('Error fetching full results:', fullError);
+                        // Se c'è un errore, avvia il polling
+                        startProgressTracking(result.session_id);
+                    }
+                } else {
+                    showError(result.error || 'Errore durante l\'analisi');
+                    setLoading(false);
+                }
+            } catch (error) {
+                showError('Errore di connessione: ' + error.message);
+                setLoading(false);
+            }
+        });
+
+        // Follow-up questions
+        followupBtn.addEventListener('click', sendFollowupQuestion);
+        followupQuestion.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendFollowupQuestion();
+            }
+        });
+
+        async function sendFollowupQuestion() {
+            const question = followupQuestion.value.trim();
+            if (!question || !currentSessionId) {
+                return;
+            }
+
+            const originalText = followupBtn.innerHTML;
+            followupBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Inviando...';
+            followupBtn.disabled = true;
+
+            try {
+                const response = await fetch('/api/followup', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        session_id: currentSessionId,
+                        question: question
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    addFollowupToHistory(question, result.answer, result.timestamp, result.model_used);
+                    followupQuestion.value = '';
+                } else {
+                    showError(result.error || 'Errore durante il follow-up');
+                }
+            } catch (error) {
+                showError('Errore di connessione: ' + error.message);
+            } finally {
+                followupBtn.innerHTML = originalText;
+                followupBtn.disabled = false;
+            }
+        }
+
+        function displayResults(result) {
+            // Nascondi loading e mostra risultati
+            setLoading(false);
+            
+            // Display clinical summary
+            if (result.clinical_summary) {
+                displayClinicalSummary(result.clinical_summary, result.from_cache);
+            }
+
+            // Display final report with markdown formatting
+            resultContent.innerHTML = formatMarkdown(result.final_report);
+            
+            // Show timestamp with cache indicator
+            let timestampText = formatTimestamp(result.timestamp);
+            if (result.from_cache) {
+                timestampText += ' (da cache - risultato istantaneo)';
+            }
+            resultTimestamp.textContent = timestampText;
+            
+            // Show result section
+            resultSection.style.display = 'block';
+            
+            // Show download PDF button
+            const downloadBtn = document.getElementById('downloadPdfBtn');
+            downloadBtn.style.display = 'flex';
+            
+            // Clear previous follow-up history
+            followupHistory.innerHTML = '';
+            
+            // Scroll to results
+            resultSection.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function displayClinicalSummary(summary, fromCache = false) {
+            const activeCount = summary.risk_estimates ? summary.risk_estimates.length : 0;
+            let statusText = fromCache ? 
+                '(risultato da cache intelligente)' : 
+                '(logica clinica completa)';
+            
+            let summaryHtml = `
+                <p><strong>Sistema PRISM-AD Veloce:</strong> ${activeCount} agenti attivi 
+                   <span style="color: #4CAF50; font-weight: 600;">${statusText}</span></p>`;
+            
+            if (summary.risk_estimates && summary.risk_estimates.length > 0) {
+                summaryHtml += '<div class="risk-estimates">';
+                
+                // Ordina gli agenti per peso (dal più alto al più basso)
+                const sortedEstimates = summary.risk_estimates.sort((a, b) => b.weight - a.weight);
+                
+                sortedEstimates.forEach(estimate => {
+                    const weightPercent = (estimate.weight * 100).toFixed(1);
+                    const isActive = estimate.is_active;
+                    const hasError = estimate.error;
+                    
+                    // Stile diverso per agenti attivi/inattivi
+                    const itemClass = isActive ? 'risk-item active' : 'risk-item inactive';
+                    const weightColor = isActive ? '#4CAF50' : '#999';
+                    const riskColor = hasError ? '#f44336' : (isActive ? '#2196F3' : '#999');
+                    
+                    let riskDisplay;
+                    if (hasError) {
+                        riskDisplay = '<i class="fas fa-exclamation-triangle" style="color: #f44336;"></i>';
+                    } else {
+                        riskDisplay = `${estimate.risk_percentage.toFixed(1)}%`;
+                    }
+                    
+                    summaryHtml += `
+                        <div class="${itemClass}" style="border-left: 4px solid ${weightColor};">
+                            <div class="risk-value" style="color: ${riskColor};">${riskDisplay}</div>
+                            <div style="font-weight: 600; margin: 4px 0;">${estimate.agent_display_name}</div>
+                            <div style="font-size: 0.8em; color: ${weightColor};">
+                                Peso: ${weightPercent}% ${isActive ? '(attivo)' : '(inattivo)'}
+                            </div>
+                            ${hasError ? `<div style="font-size: 0.7em; color: #f44336; margin-top: 2px;">${estimate.error}</div>` : ''}
+                        </div>
+                    `;
+                });
+                summaryHtml += '</div>';
+            }
+
+            if (summary.consensus_needed) {
+                summaryHtml += '<p style="color: #ff9800; margin-top: 15px; padding: 10px; background: #fff3e0; border-radius: 6px; border-left: 4px solid #ff9800;"><i class="fas fa-exclamation-triangle"></i> <strong>Consenso Necessario:</strong> Differenze significative tra agenti - Algoritmo di consenso applicato</p>';
+            } else {
+                summaryHtml += '<p style="color: #4caf50; margin-top: 15px; padding: 10px; background: #e8f5e8; border-radius: 6px; border-left: 4px solid #4caf50;"><i class="fas fa-check-circle"></i> <strong>Consenso Raggiunto:</strong> Risultati degli agenti coerenti</p>';
+            }
+
+            summaryContent.innerHTML = summaryHtml;
+            clinicalSummary.style.display = 'block';
+        }
+
+        function addFollowupToHistory(question, answer, timestamp, modelUsed = 'gpt-4o') {
+            const followupItem = document.createElement('div');
+            followupItem.className = 'followup-item';
+            
+            const modelBadge = modelUsed === 'gpt-4o' ? 
+                '<span style="background: #4CAF50; color: white; padding: 2px 6px; border-radius: 3px; font-size: 0.7em; margin-left: 5px;">GPT-4o</span>' : 
+                '';
+            
+            followupItem.innerHTML = `
+                <div class="followup-question">
+                    <i class="fas fa-user-md"></i> <strong>Tu:</strong> ${question}
+                </div>
+                <div class="followup-answer">
+                    <i class="fas fa-robot"></i> <strong>PRISM-AD ${modelBadge}:</strong><br>
+                    ${answer}
+                </div>
+                <div class="timestamp">${formatTimestamp(timestamp)}</div>
+            `;
+            
+            followupHistory.insertBefore(followupItem, followupHistory.firstChild);
+        }
+
+        function setLoading(isLoading) {
+            analyzeBtn.disabled = isLoading;
+            loadingDiv.style.display = isLoading ? 'block' : 'none';
+            resultSection.style.display = isLoading ? 'none' : resultSection.style.display;
+            
+            if (isLoading) {
+                analyzeBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analizzando...';
+            } else {
+                analyzeBtn.innerHTML = '<i class="fas fa-microscope"></i> Analizza Paziente';
+                // Pulisci i messaggi dinamici quando l'analisi finisce
+                stopDynamicMessages();
+                // Pulisci anche il polling se è attivo
+                if (pollingInterval) {
+                    clearInterval(pollingInterval);
+                    pollingInterval = null;
+                }
+            }
+        }
+
+        function showError(message) {
+            hideError();
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error';
+            errorDiv.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${message}`;
+            document.querySelector('.card-body').appendChild(errorDiv);
+        }
+
+        function hideError() {
+            const existingError = document.querySelector('.error');
+            if (existingError) {
+                existingError.remove();
+            }
+        }
+
+        function formatTimestamp(timestamp) {
+            return new Date(timestamp).toLocaleString('it-IT');
+        }
+
+        function formatMarkdown(text) {
+            // Formatter markdown professionale per report medico
+            let formatted = text
+                // Pulisci spazi extra e normalizza line breaks
+                .trim()
+                .replace(/\r\n/g, '\n')
+                .replace(/\n{3,}/g, '\n\n')
+                
+                // Headers principali (# )
+                .replace(/^# \*\*(.*?)\*\*/gm, '<h1>$1</h1>')
+                .replace(/^# (.*$)/gm, '<h1>$1</h1>')
+                
+                // Headers sezioni (## )
+                .replace(/^## \*\*(.*?)\*\*/gm, '<h2>$1</h2>')
+                .replace(/^## (.*$)/gm, '<h2>$1</h2>')
+                
+                // Sub-headers (### )
+                .replace(/^### \*\*(.*?)\*\*/gm, '<h3>$1</h3>')
+                .replace(/^### (.*$)/gm, '<h3>$1</h3>')
+                
+                // Bold text per livelli di rischio con colori
+                .replace(/\*\*(BASSO)\*\*/g, '<span style="color: #2e7d32; font-weight: bold; font-size: 1.1em; background-color: #e8f5e8; padding: 0.2em 0.5em; border-radius: 4px; border: 1px solid #2e7d32;">$1</span>')
+                .replace(/\*\*(MODERATO)\*\*/g, '<span style="color: #f57c00; font-weight: bold; font-size: 1.1em; background-color: #fff3e0; padding: 0.2em 0.5em; border-radius: 4px; border: 1px solid #f57c00;">$1</span>')
+                .replace(/\*\*(ALTO)\*\*/g, '<span style="color: #d32f2f; font-weight: bold; font-size: 1.1em; background-color: #ffebee; padding: 0.2em 0.5em; border-radius: 4px; border: 1px solid #d32f2f;">$1</span>')
+                
+                // Accordo livelli con colori
+                .replace(/\*\*(HIGH)\*\*/g, '<span style="color: #2e7d32; font-weight: bold; background-color: #e8f5e8; padding: 0.1em 0.3em; border-radius: 3px;">$1</span>')
+                .replace(/\*\*(MEDIUM)\*\*/g, '<span style="color: #f57c00; font-weight: bold; background-color: #fff3e0; padding: 0.1em 0.3em; border-radius: 3px;">$1</span>')
+                .replace(/\*\*(LOW)\*\*/g, '<span style="color: #d32f2f; font-weight: bold; background-color: #ffebee; padding: 0.1em 0.3em; border-radius: 3px;">$1</span>')
+                
+                // Bold text normale
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                
+                // Bullet points come lista
+                .replace(/^• (.*$)/gm, '<li>$1</li>')
+                
+                // Horizontal lines
+                .replace(/^---$/gm, '<hr>')
+                
+                // Italics per note
+                .replace(/\*(.*?)\*/g, '<em>$1</em>');
+            
+            // Wrappa bullet points in liste
+            formatted = formatted.replace(/(<li>.*?<\/li>(?:\s*<li>.*?<\/li>)*)/gs, function(match) {
+                return '<ul style="margin: 1em 0; padding-left: 1.5em;">' + match + '</ul>';
+            });
+            
+            // Dividi in paragrafi e wrappa il contenuto
+            let paragraphs = formatted.split(/\n\s*\n/);
+            let result = '';
+            
+            for (let i = 0; i < paragraphs.length; i++) {
+                let para = paragraphs[i].trim();
+                if (!para) continue;
+                
+                // Non wrappare headers, liste o hr in paragrafi
+                if (para.match(/^<(h[1-6]|ul|hr)/)) {
+                    result += para + '\n\n';
+                } else {
+                    // Gestisci line breaks semplici all'interno del paragrafo
+                    para = para.replace(/\n/g, '<br>');
+                    result += '<p style="margin: 1em 0; line-height: 1.6; text-align: justify;">' + para + '</p>\n\n';
+                }
+            }
+            
+            return result;
+        }
+
+        function clearCurrentSession(clearTextarea = false) {
+            // Reset session
+            currentSessionId = null;
+            
+            // Clear textarea if requested
+            if (clearTextarea) {
+                document.getElementById('anamnesis').value = '';
+                document.getElementById('charCounter').textContent = '0 caratteri';
+                document.getElementById('charCounter').style.color = '#999';
+            }
+            
+            // Hide results
+            resultSection.style.display = 'none';
+            clinicalSummary.style.display = 'none';
+            
+            // Hide download PDF button
+            const downloadBtn = document.getElementById('downloadPdfBtn');
+            if (downloadBtn) {
+                downloadBtn.style.display = 'none';
+            }
+            
+            // Clear follow-up history
+            followupHistory.innerHTML = '';
+            followupQuestion.value = '';
+            
+            // Clear error messages
+            hideError();
+            
+            // Reset loading state
+            setLoading(false);
+        }
+
+        async function clearSystemCache() {
+            // Conferma azione
+            if (!confirm('Sei sicuro di voler cancellare la cache del sistema?\\n\\nQuesto forzerà il ricalcolo di tutte le analisi future anche per anamnesi simili.')) {
+                return;
+            }
+
+            // Disabilita temporaneamente il pulsante
+            const clearBtn = document.getElementById('clearCacheBtn');
+            const originalText = clearBtn.innerHTML;
+            clearBtn.disabled = true;
+            clearBtn.innerHTML = '⏳';
+
+            try {
+                const response = await fetch('/api/clear-cache', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // Mostra messaggio di successo
+                    showToast('success', `✅ ${result.message}`);
+                    console.log('Cache cleared successfully:', result);
+                } else {
+                    // Mostra errore
+                    showToast('error', `❌ Errore: ${result.error}`);
+                    console.error('Error clearing cache:', result.error);
+                }
+
+            } catch (error) {
+                console.error('Network error clearing cache:', error);
+                showToast('error', '❌ Errore di rete durante la cancellazione della cache');
+            } finally {
+                // Riabilita il pulsante
+                clearBtn.disabled = false;
+                clearBtn.innerHTML = originalText;
+            }
+        }
+
+        function showToast(type, message) {
+            // Crea elemento toast
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.innerHTML = `
+                <div class="toast-content">
+                    ${message}
+                </div>
+            `;
+
+            // Stile del toast
+            toast.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 12px 20px;
+                border-radius: 8px;
+                color: white;
+                font-weight: 600;
+                z-index: 10000;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                opacity: 0;
+                transform: translateX(100%);
+                transition: all 0.3s ease;
+                max-width: 400px;
+                word-wrap: break-word;
+            `;
+
+            if (type === 'success') {
+                toast.style.background = 'linear-gradient(90deg, #4CAF50, #45a049)';
+            } else {
+                toast.style.background = 'linear-gradient(90deg, #f44336, #d32f2f)';
+            }
+
+            // Aggiungi al DOM
+            document.body.appendChild(toast);
+
+            // Animazione entrata
+            setTimeout(() => {
+                toast.style.opacity = '1';
+                toast.style.transform = 'translateX(0)';
+            }, 100);
+
+            // Rimozione automatica dopo 4 secondi
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(100%)';
+                setTimeout(() => {
+                    if (toast.parentNode) {
+                        toast.parentNode.removeChild(toast);
+                    }
+                }, 300);
+            }, 4000);
+        }
+
+        function showMessage(message, type = 'info') {
+            showToast(type, message);
+        }
+
+        // Voice recording functionality
+        voiceBtn.addEventListener('click', toggleRecording);
+
+        async function toggleRecording() {
+            if (!isRecording) {
+                await startRecording();
+            } else {
+                stopRecording();
+            }
+        }
+
+        async function startRecording() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    audio: {
+                        sampleRate: 16000,
+                        channelCount: 1,
+                        echoCancellation: true,
+                        noiseSuppression: true
+                    } 
+                });
+                
+                audioChunks = [];
+                mediaRecorder = new MediaRecorder(stream, {
+                    mimeType: 'audio/webm;codecs=opus'
+                });
+                
+                mediaRecorder.ondataavailable = (event) => {
+                    if (event.data.size > 0) {
+                        audioChunks.push(event.data);
+                    }
+                };
+                
+                mediaRecorder.onstop = processAudioRecording;
+                
+                mediaRecorder.start(100); // Collect data every 100ms
+                isRecording = true;
+                
+                // Update UI
+                voiceBtn.classList.add('recording');
+                voiceBtnText.textContent = 'Ferma Dettatura';
+                voiceBtn.querySelector('i').className = 'fas fa-stop';
+                voiceStatus.textContent = 'Registrazione in corso... Parla chiaramente';
+                
+            } catch (error) {
+                console.error('Error starting recording:', error);
+                showError('Errore nell\'accesso al microfono: ' + error.message);
+                voiceStatus.textContent = 'Errore: impossibile accedere al microfono';
+            }
+        }
+
+        function stopRecording() {
+            if (mediaRecorder && isRecording) {
+                mediaRecorder.stop();
+                mediaRecorder.stream.getTracks().forEach(track => track.stop());
+                
+                isRecording = false;
+                
+                // Update UI
+                voiceBtn.classList.remove('recording');
+                voiceBtnText.textContent = 'Elaborando...';
+                voiceBtn.querySelector('i').className = 'fas fa-spinner fa-spin';
+                voiceBtn.disabled = true;
+                voiceStatus.textContent = 'Elaborazione audio in corso...';
+            }
+        }
+
+        async function processAudioRecording() {
+            try {
+                // Create audio blob
+                const audioBlob = new Blob(audioChunks, { type: 'audio/webm;codecs=opus' });
+                
+                // Convert to WAV format for better compatibility
+                const audioBuffer = await audioBlob.arrayBuffer();
+                
+                // Create FormData for API request
+                const formData = new FormData();
+                formData.append('audio', audioBlob, 'recording.webm');
+                
+                // Send to transcription endpoint
+                const response = await fetch('/api/transcribe', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Append transcription to textarea
+                    const textarea = document.getElementById('anamnesis');
+                    const currentText = textarea.value;
+                    const newText = currentText ? currentText + '\n\n' + result.transcription : result.transcription;
+                    textarea.value = newText;
+                    
+                    // Update character counter
+                    const charCounter = document.getElementById('charCounter');
+                    const length = textarea.value.length;
+                    charCounter.textContent = `${length.toLocaleString()} caratteri`;
+                    
+                    // Focus textarea
+                    textarea.focus();
+                    
+                    voiceStatus.textContent = 'Trascrizione completata!';
+                    setTimeout(() => {
+                        voiceStatus.textContent = '';
+                    }, 3000);
+                    
+                } else {
+                    // Gestisci diversi tipi di errore
+                    let errorMessage = result.error || 'Errore sconosciuto';
+                    let statusMessage = 'Errore nella trascrizione';
+                    
+                    if (result.error_type === 'connection') {
+                        statusMessage = 'Errore di connessione - Riprova';
+                        errorMessage += '\n\nSuggerimenti:\n• Verifica la connessione internet\n• Riprova tra qualche secondo\n• Usa una connessione più stabile';
+                    } else if (result.error_type === 'auth') {
+                        statusMessage = 'Errore di autenticazione';
+                        errorMessage += '\n\nIl servizio Whisper potrebbe non essere disponibile. Contatta l\'amministratore.';
+                    } else if (result.error_type === 'file') {
+                        statusMessage = 'Audio troppo breve';
+                        errorMessage += '\n\nAssicurati di:\n• Parlare per almeno 1-2 secondi\n• Tenere premuto il microfono durante la registrazione';
+                    } else if (result.error_type === 'size') {
+                        statusMessage = 'Audio troppo lungo';
+                        errorMessage += '\n\nProva a:\n• Registrare per meno tempo\n• Dividere l\'anamnesi in parti più piccole';
+                    }
+                    
+                    showError(errorMessage);
+                    voiceStatus.textContent = statusMessage;
+                }
+                
+            } catch (error) {
+                console.error('Error processing audio:', error);
+                showError('Errore nell\'elaborazione audio: ' + error.message);
+                voiceStatus.textContent = 'Errore nell\'elaborazione';
+            } finally {
+                // Reset voice button
+                voiceBtn.disabled = false;
+                voiceBtnText.textContent = 'Inizia Dettatura';
+                voiceBtn.querySelector('i').className = 'fas fa-microphone';
+            }
+        }
+
+        // Character counter and sample anamnesis
+        document.addEventListener('DOMContentLoaded', () => {
+            const textarea = document.getElementById('anamnesis');
+            const charCounter = document.getElementById('charCounter');
+            
+            // Update character counter
+            function updateCharCounter() {
+                const length = textarea.value.length;
+                charCounter.textContent = `${length.toLocaleString()} caratteri`;
+                
+                // Color coding based on length
+                if (length < 500) {
+                    charCounter.style.color = '#999';
+                } else if (length < 2000) {
+                    charCounter.style.color = '#4CAF50';
+                } else if (length < 5000) {
+                    charCounter.style.color = '#2196F3';
+                } else {
+                    charCounter.style.color = '#FF9800';
+                }
+            }
+            
+            // Add event listeners for character counting
+            textarea.addEventListener('input', updateCharCounter);
+            textarea.addEventListener('paste', () => setTimeout(updateCharCounter, 10));
+            
+            // Anamnesi examples
+            const example1Text = `Donna di 68 anni, caucasica di razza bianca, con istruzione universitaria (16 anni di scolarità), risultata negativa per il gene ApoE4 all'analisi genetica. All'esame neuropsicologico baseline presenta cognizione completamente integra con CDR pari a 0 e MMSE di 27/30. I test neuropsicologici mostrano ADCS-PACC di 0.3 e RAVLT Trial 1 immediato di 5.1 parole.
+
+L'analisi del liquido cerebrospinale evidenzia biomarcatori favorevoli: tau totale di 210 pg/ml, p-tau181 di 22 pg/ml, Aβ42 elevato a 1210 pg/ml con rapporto Aβ42/Aβ40 di 0.182 (nella norma). La PET con PIB mostra SUVR corticale di 1.30 (negativa per depositi amiloidi). La risonanza magnetica cerebrale documenta volume ippocampale totale di 4.6 ml, nella norma per l'età.
+
+A 5 anni di follow-up (età 73 anni), il quadro risulta sostanzialmente invariato: nessun segno clinico di decadimento cognitivo con CDR ancora a 0 e MMSE stabile a 27/30. I test neuropsicologici mostrano lieve miglioramento con ADCS-PACC a 0.4 e RAVLT Trial 1 a 5.3 parole. I biomarcatori liquorali rimangono stabili o leggermente migliorati: tau totale aumentata a 290 pg/ml (variazione fisiologica), p-tau181 stabile a 21 pg/ml, Aβ42 aumentato a 1350 pg/ml con rapporto Aβ42/Aβ40 migliorato a 0.191. La PET PIB mostra SUVR corticale di 1.40 (ancora negativa). La risonanza evidenzia lieve riduzione ippocampale fisiologica a 4.3 ml, nei range normali per l'età avanzata.`;
+
+            const example2Text = `Donna di 69 anni, caucasica di razza bianca, con istruzione universitaria (16 anni di scolarità), portatrice di una copia del gene ApoE4 (eterozigote) all'analisi genetica. All'esame neuropsicologico baseline presenta cognizione apparentemente integra con CDR di 0.0 e MMSE di 27/30, tuttavia i test neuropsicologici più sensibili rivelano sottili alterazioni con ADCS-PACC di 0.4 (lievemente patologico) e RAVLT Trial 1 immediato di 6 parole (al limite inferiore).
+
+L'analisi del liquido cerebrospinale evidenzia biomarcatori francamente sfavorevoli: tau totale molto elevata a 350 pg/ml, p-tau181 patologica a 42 pg/ml, Aβ42 molto ridotto a 550 pg/ml con rapporto Aβ42/Aβ40 patologico di 0.07 (indicativo di patologia amiloide). La PET con PIB mostra SUVR corticale di 1.3 (positiva per depositi amiloidi significativi). La risonanza magnetica cerebrale documenta volume ippocampale totale già ridotto a 4.3 ml, suggestivo di atrofia precoce.
+
+A 5 anni di follow-up (età 74 anni), si evidenzia chiaro declino cognitivo: CDR progredito a 0.5 (mild cognitive impairment) e MMSE sceso a 25/30. I test neuropsicologici confermano il peggioramento con ADCS-PACC deteriorato a 1.0 e RAVLT Trial 1 ridotto a 4 parole (deficit di memoria episodica). I biomarcatori liquorali mostrano ulteriore progressione patologica: tau totale aumentata a 500 pg/ml, p-tau181 peggiorata a 55 pg/ml, Aβ42 ulteriormente ridotto a 380 pg/ml con rapporto Aβ42/Aβ40 stabile a 0.06 (conferma patologia amiloide). La PET PIB mostra SUVR corticale aumentato a 1.4 (progressione dei depositi amiloidi). La risonanza evidenzia significativa atrofia ippocampale progressiva con volume ridotto a 3.6 ml.`;
+
+            // Button event listeners
+            document.getElementById('newPatientBtn').addEventListener('click', () => {
+                if (confirm('Sei sicuro di voler iniziare un nuovo caso? Questo cancellerà tutti i dati attuali.')) {
+                    clearCurrentSession(true); // Clear textarea for new patient
+                }
+            });
+
+            document.getElementById('example1Btn').addEventListener('click', () => {
+                textarea.value = example1Text;
+                updateCharCounter();
+                textarea.focus();
+                clearCurrentSession(false); // Don't clear textarea, we just set it
+            });
+
+            document.getElementById('example2Btn').addEventListener('click', () => {
+                textarea.value = example2Text;
+                updateCharCounter();
+                textarea.focus();
+                clearCurrentSession(false); // Don't clear textarea, we just set it
+            });
+
+            document.getElementById('clearCacheBtn').addEventListener('click', () => {
+                clearSystemCache();
+            });
+            
+            // Initial character count
+            updateCharCounter();
+        });
+
+        function downloadReportAsPDF() {
+            try {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                
+                // Get report content and timestamp
+                const reportContent = document.getElementById('resultContent').textContent;
+                const timestamp = document.getElementById('resultTimestamp').textContent;
+                
+                // Extract patient name from anamnesis if available
+                const anamnesis = document.getElementById('anamnesis').value;
+                let patientName = 'Paziente';
+                const nameMatch = anamnesis.match(/(?:paziente|nome|patient)?\s*([A-Z][a-z]+\s+[A-Z][a-z]+)/i);
+                if (nameMatch) {
+                    patientName = nameMatch[1];
+                }
+                
+                // PDF Configuration
+                const margin = 20;
+                const lineHeight = 6;
+                const pageWidth = doc.internal.pageSize.width;
+                const pageHeight = doc.internal.pageSize.height;
+                const textWidth = pageWidth - (margin * 2);
+                
+                let yPosition = margin;
+                
+                // Header
+                doc.setFontSize(16);
+                doc.setFont(undefined, 'bold');
+                doc.text('REPORT PRISM-AD - Analisi Rischio Alzheimer', margin, yPosition);
+                yPosition += lineHeight * 2;
+                
+                // Patient info and timestamp
+                doc.setFontSize(12);
+                doc.setFont(undefined, 'normal');
+                doc.text(`Paziente: ${patientName}`, margin, yPosition);
+                yPosition += lineHeight;
+                doc.text(`Data: ${timestamp}`, margin, yPosition);
+                yPosition += lineHeight * 2;
+                
+                // Add line separator
+                doc.line(margin, yPosition, pageWidth - margin, yPosition);
+                yPosition += lineHeight;
+                
+                // Clean and format report content
+                let cleanContent = reportContent
+                    .replace(/[\r\n]+/g, '\n')
+                    .replace(/\s+/g, ' ')
+                    .trim();
+                
+                // Split content into lines that fit the page width
+                doc.setFontSize(10);
+                doc.setFont(undefined, 'normal');
+                const lines = doc.splitTextToSize(cleanContent, textWidth);
+                
+                for (let line of lines) {
+                    // Check if new page needed
+                    if (yPosition > pageHeight - 20) {
+                        doc.addPage();
+                        yPosition = margin;
+                    }
+                    
+                    // Check if this is a header line and format accordingly
+                    if (line.includes('RISULTATO PRINCIPALE') || 
+                        line.includes('RACCOMANDAZIONI CLINICHE')) {
+                        doc.setFont(undefined, 'bold');
+                        doc.setFontSize(12);
+                    } else if (line.includes('Rischio di progressione')) {
+                        doc.setFont(undefined, 'bold');
+                        doc.setFontSize(11);
+                    } else {
+                        doc.setFont(undefined, 'normal');
+                        doc.setFontSize(10);
+                    }
+                    
+                    doc.text(line, margin, yPosition);
+                    yPosition += lineHeight;
+                }
+                
+                // Footer
+                const footerY = pageHeight - 15;
+                doc.setFontSize(8);
+                doc.setFont(undefined, 'italic');
+                doc.text('Report generato dal Sistema PRISM-AD', margin, footerY);
+                
+                // Generate filename with timestamp
+                const now = new Date();
+                const dateStr = now.toISOString().slice(0, 10).replace(/-/g, '');
+                const timeStr = now.toTimeString().slice(0, 5).replace(':', '');
+                const filename = `PRISM-AD_Report_${patientName.replace(/\s+/g, '_')}_${dateStr}_${timeStr}.pdf`;
+                
+                // Save PDF
+                doc.save(filename);
+                
+                // Show success message
+                showMessage('Report PDF scaricato con successo!', 'success');
+                
+            } catch (error) {
+                console.error('Error generating PDF:', error);
+                showMessage('Errore durante la generazione del PDF. Prova di nuovo.', 'error');
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+
+        Alzheimer's Disease Risk Assessment Guidelines
+        
+        The National Institute on Aging-Alzheimer's Association (NIA-AA) criteria 
+        define three stages of Alzheimer's disease:
+        
+        1. Preclinical AD (Stage 1): Biomarker evidence of AD pathology without 
+           cognitive symptoms. Risk of progression to MCI within 5 years: 5-15%.
+        
+        2. MCI due to AD (Stage 2): Mild cognitive impairment with biomarker 
+           evidence. Risk of progression to dementia within 5 years: 20-40%.
+        
+        3. Dementia due to AD (Stage 3): Clear cognitive and functional impairment.
+        
+        CSF biomarkers:
+        - Aβ42 < 550 pg/ml indicates amyloid pathology
+        - p-tau181 > 40 pg/ml indicates tau pathology
+        - Aβ42/Aβ40 ratio < 0.075 is highly predictive
+        
+        Amyloid PET SUVR > 1.3 indicates positive amyloid burden.
+        Hippocampal volume < 4.5 ml total indicates atrophy.
+        

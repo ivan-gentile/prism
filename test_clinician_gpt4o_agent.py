@@ -75,7 +75,7 @@ async def test_clinician_gpt4o_agent():
         print("PRISM system initialized successfully")
         
         # Test only the clinician GPT4o agent
-        print("\nTesting Clinician GPT4o Agent with OpenAI API...")
+        print("\nTesting Model GPT4o Agent with OpenAI API...")
         print("-" * 40)
         
         # Run only the clinician GPT4o agent
@@ -100,7 +100,7 @@ async def test_clinician_gpt4o_agent():
 
 async def main():
     """Main test function"""
-    print("Starting PRISM Clinician GPT4o Agent Test with OpenAI API...")
+    print("Starting PRISM Model GPT4o Agent Test with OpenAI API...")
     print()
     
     success = await test_clinician_gpt4o_agent()

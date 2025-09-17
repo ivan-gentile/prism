@@ -8,11 +8,18 @@ BASE_URL=https://bpod1.ai-factory.fastweb.it/v1
 # API Key (you need to provide your FastWeb API key)
 OPENAI_API_KEY=your-fastweb-api-key-here
 
+# Whisper Configuration for Speech-to-Text
+WHISPER_BASE_URL=https://bpod1.ai-factory.fastweb.it/v1
+WHISPER_API_KEY=your-fastweb-whisper-api-key-here
+WHISPER_MODEL=openai/whisper-large-v3-turbo
+
 # Instructions:
-# 1. Get your API key from FastWeb
-# 2. Replace 'your-fastweb-api-key-here' with your actual FastWeb API key
+# 1. Get your API keys from FastWeb (both for LLM and Whisper)
+# 2. Replace the placeholder keys with your actual FastWeb API keys
 # 3. Set these environment variables in PowerShell:
 #    $env:MODEL_NAME="meta/llama-3.3-70b-instruct"
 #    $env:BASE_URL="https://bpod1.ai-factory.fastweb.it/v1"
 #    $env:OPENAI_API_KEY="your-actual-fastweb-api-key"
-# 4. Run: python test_clinician_fastweb_agent.py
+#    $env:WHISPER_API_KEY="your-actual-whisper-api-key"
+# 4. Update the token in prism_webapp.py line 1078 with your Whisper API key
+# 5. Run: python prism_webapp.py

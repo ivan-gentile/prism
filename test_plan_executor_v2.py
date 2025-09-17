@@ -99,10 +99,10 @@ class TestPlanExecutorV2:
             clinician_risk = self._extract_risk_from_result(clinician_result)
             print(f"    ✅ Clinician Agent: {clinician_risk*100:.1f}%")
             
-            # Clinician GPT4o Agent
+            # Model GPT4o Agent
             clinician_gpt4o_result = await self.prism_system._run_clinician_gpt4o_agent(patient_data)
             clinician_gpt4o_risk = self._extract_risk_from_result(clinician_gpt4o_result)
-            print(f"    ✅ Clinician GPT4o: {clinician_gpt4o_risk*100:.1f}%")
+            print(f"    ✅ Model GPT4o: {clinician_gpt4o_risk*100:.1f}%")
             
             # Clinician FASTWEB Agent
             clinician_fastweb_result = await self.prism_system._run_clinician_fastweb_agent(patient_data)
@@ -225,7 +225,7 @@ Analizza i risultati dei tre agenti clinici e fornisci un consenso:
 AGENTE 1 (Clinician - GPT-4o-mini):
 {clinician_result}
 
-AGENTE 2 (Clinician GPT4o - GPT-4o):
+AGENTE 2 (Model GPT4o - GPT-4o):
 {clinician_gpt4o_result}
 
 AGENTE 3 (Clinician FASTWEB - Llama-3.3-70B):
